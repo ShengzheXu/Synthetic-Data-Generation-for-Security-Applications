@@ -1,34 +1,45 @@
 import pandas as pd
 import numpy as np
+from datetime import datetime
+import os
+
+def do_write(df, filename):
+    # if file does not exist write header 
+    if not os.path.isfile(filename):
+        df.to_csv(filename, header='column_names')
+    else: # else it exists so append without writing the header
+        df.to_csv(filename, mode='a', header=False)
 
 datafile = 'D:\\research_local_data\\april_week3_csv\\april_week3_csv\\uniq\\april.week3.csv.uniqblacklistremoved'
-
-N = 10000
-with open(datafile) as myfile:
-    head = [next(myfile) for x in range(N)]
-print('\n'.join(head[:5]))
-
-head = head[1:]
-theDate = head[0].split(',')[0].split(' ')[0] # date '2016-04-11'
+# outputfile = 'output\\selected_data%s.csv'
+outputfile = 'output\\day_1_internal_ip_only.csv'
+# datafile = 'D:\\research_local_data\\spam_april_week3_csv\\april\\week3\\spam_flows_cut.csv'
+columnName = ['te', 'td', 'sa', 'da', 'sp', 'dp', 'pr', 'flg', 'fwd', 'stos', 'pkt', 'byt', 'lable']
+theDate = '2016-04-11'
+theLocalIp = '42.219'
 userFilter = {}
 filteredList = []
-for line in head:
-    elements = line.split(',')
-    if (elements[0].split(' ')[0] != theDate):
-        continue
-    if (elements[2] in userFilter):
-        filteredList.append(line)
-        userFilter[elements[2]] += 1
-    elif (len(userFilter) < 10000):
-        userFilter[elements[2]] = 1
-        filteredList.append(line)
+chunkNum = 0
+totalLines = 0
+
+starttime = datetime.now()
+chunksize = 10 ** 6
+for chunk in pd.read_csv(datafile, chunksize=chunksize, header=None, names = columnName):
+    first_rows = chunk.head(n=5)
+    # print(first_rows)
+    # print(chunk[0:1, 'te'].str.split(' ')[0])
+    
+    chunk = chunk[(chunk['te'].str.startswith(theDate)) & (chunk['sa'].str.startswith(theLocalIp))
+                    & (chunk['da'].str.startswith(theLocalIp))]
+    # print(chunk.head(n=5))
+    if (len(chunk.index) == 0):
+        break
     else:
-        pass
+        chunkNum += 1
+        totalLines += len(chunk.index)
+        print(chunkNum, totalLines)
+        # chunk.to_csv(outputfile % chunkNum)
+        do_write(chunk, outputfile)
 
-with open('selected_data.csv', 'w') as file:
-    file.write(''.join(filteredList))
-
-print("num of users", len(userFilter))
-print("num of records", len(filteredList))
-bestUsers = sorted( ((v,k) for k,v in userFilter.items()), reverse=True)
-print(bestUsers[:20])
+endtime = datetime.now()
+print('process time', (endtime-starttime).seconds)
