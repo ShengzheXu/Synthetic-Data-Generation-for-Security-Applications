@@ -6,7 +6,7 @@ We want all day 1 records that include local ip addresses in SourceA _*or*_ Dest
 
 For a entire day, find 10/20 users occurs the most, and how many times they occures, in SA or DA.
 
-Look at each user over time temporally. For each hour or 15 minutes.
+Look at each user over time temporally, instead of mixing all users together. For each hour or 15 minutes.
 
 ## Bayesian Approach
 
