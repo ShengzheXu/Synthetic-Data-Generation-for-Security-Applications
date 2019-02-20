@@ -8,18 +8,34 @@ def do_write(df, filename):
     else: # else it exists so append without writing the header
         df.to_csv(filename, mode='a', header=False, index=False)
 
+def date_to_seconds(end_date_time_str):
+    import datetime
+    start_date_time_str = '2016-04-11 00:00:00'  
+    start_date_time_obj = datetime.datetime.strptime(start_date_time_str, '%Y-%m-%d %H:%M:%S')
+    end_date_time_obj = datetime.datetime.strptime(end_date_time_str, '%Y-%m-%d %H:%M:%S')
+    return (end_date_time_obj-start_date_time_obj).total_seconds()
+
+def date_to_T(date_time_str):
+    hh = date_time_str[11:13]
+    if hh.startswith('0'):
+        hh = hh[-1]
+    return hh
+
 def filter(source_data):
     all_record = pd.read_csv(source_data)
     print(all_record.tail())
-    for t in range(0, 24):
-        t_str = str(int(t/10)) + str(t%10)
 
-        print('2016-04-11 %s' % t_str),
-        df = all_record[all_record['te'].str.startswith('2016-04-11 %s' % t_str)]
-        print('=======')
-        print(df.head())
-        print(df.tail())
-        do_write(df, './../data/output/T%s_day_1_42.219.153.89.csv' % t_str)
+    # add teT column
+    all_record['teT'] = all_record['te'].apply(date_to_T).astype(int)
+    
+    # print(all_record.head())
+    # add teS & teDelta column
+    all_record['teS'] = all_record['te'].apply(date_to_seconds).astype(int)
+    all_record['teDelta'] = all_record['teS'].diff().fillna(0).astype(int)
+    
+    print(all_record.head())
+
+    do_write(all_record, './../data/output/expanded_day_1_42.219.153.89.csv')
     
 def rectify_byt():
     source_data = './../data/day_1_42.219.153.89/original_hour_division/T%s_day_1_42.219.153.89.csv'
@@ -33,7 +49,7 @@ def rectify_byt():
         # do_write(df, './../data/day_1_42.219.153.89/rectified_hour_division/T%s_day_1_42.219.153.89.csv' % t_str)
 
 if __name__ == "__main__":
-    # source_data = './../data/output/day_1_42.219.153.89.csv'
-    # filter(source_data)
+    source_data = './../data/day_1_42.219.153.89/day_1_42.219.153.89.csv'
+    filter(source_data)
 
-    rectify_byt()
+#     rectify_byt()
