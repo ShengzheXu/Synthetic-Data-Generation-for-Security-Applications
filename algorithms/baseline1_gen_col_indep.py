@@ -45,7 +45,9 @@ for i in range(row_number):
     te_col.append(gen_te)
     dip_col.append(dip_model())
     gen_data.append([te_col[i], sip, dip_col[i][0], int(np.exp(byt_col[0][i][0])), gen_te_delta[0]])
-#     print('===>', gen_data[-1])
+    print(i, '===>', gen_data[-1])
+
+exit()
 
 # write to a csv file
 import csv
