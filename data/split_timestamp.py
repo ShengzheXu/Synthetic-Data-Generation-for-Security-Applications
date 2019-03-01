@@ -21,35 +21,28 @@ def date_to_T(date_time_str):
         hh = hh[-1]
     return hh
 
-def filter(source_data):
+def filter(source_data, name_str):
     all_record = pd.read_csv(source_data)
     print(all_record.tail())
 
-    # add teT column
+    # add byt-1 column
+    all_record['byt-1'] = all_record['byt'].shift(1).fillna(2).astype(int)
+
+    # add teT & teS & teDelta column
     all_record['teT'] = all_record['te'].apply(date_to_T).astype(int)
-    
-    # print(all_record.head())
-    # add teS & teDelta column
     all_record['teS'] = all_record['te'].apply(date_to_seconds).astype(int)
     all_record['teDelta'] = all_record['teS'].diff().fillna(0).astype(int)
     
-    print(all_record.head())
+    # print(all_record.head())
 
-    do_write(all_record, './../data/output/expanded_day_1_42.219.153.89.csv')
+    do_write(all_record, 'baseline1&2/cleaned_data/expanded_day_1_%s.csv' % name_str)
     
-def rectify_byt():
-    source_data = './../data/day_1_42.219.153.89/original_hour_division/T%s_day_1_42.219.153.89.csv'
-    for t in range(0, 24):
-        t_str = str(int(t/10)) + str(t%10)
-        df = pd.read_csv(source_data % t_str)
-        # print(df.head())
-        df['byt'] = df['byt'].map(lambda x: int((x+50)/100) * 100)
-        # print(df.head())
-        print(len(df.index))
-        # do_write(df, './../data/day_1_42.219.153.89/rectified_hour_division/T%s_day_1_42.219.153.89.csv' % t_str)
 
 if __name__ == "__main__":
-    source_data = './../data/day_1_42.219.153.89/day_1_42.219.153.89.csv'
-    filter(source_data)
+    # source_data = './../data/day_1_42.219.153.89/day_1_42.219.153.89.csv'
+    ip_str = '42.219.158.226'
+    ip_str = 'sampled_10IPs'
+    source_data = 'baseline1&2/raw_data/day_1_%s.csv' % ip_str
+    filter(source_data, ip_str)
 
 #     rectify_byt()

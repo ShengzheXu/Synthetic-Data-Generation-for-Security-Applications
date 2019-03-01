@@ -6,9 +6,15 @@ from sklearn import mixture
 import numpy as np
 import pandas as pd
 
-# init data & settings
+# settings
+ip_str = '42.219.158.226'
+ip_str = 'sampled_10IPs'
+output_str = '10IP'
+
+starttime = datetime.now()
+# init data
 np.random.seed(131)
-source_data = './../data/output/expanded_day_1_42.219.153.89.csv'
+source_data = './../data/baseline1&2/cleaned_data/expanded_day_1_%s.csv' % ip_str
 all_record = pd.read_csv(source_data)
 
 byt_train = np.reshape(all_record['byt'].values, (-1, 1))
@@ -31,7 +37,7 @@ def choice_from_dip_pool():
 dip_model = choice_from_dip_pool
 
 # gen data
-row_number = 500000
+row_number = 637608
 byt_col = byt_model.sample(row_number)
 te_col = []
 dip_col = []
@@ -47,13 +53,16 @@ for i in range(row_number):
     gen_data.append([te_col[i], sip, dip_col[i][0], int(np.exp(byt_col[0][i][0])), gen_te_delta[0]])
     print(i, '===>', gen_data[-1])
 
-exit()
+# exit()
 
 # write to a csv file
 import csv
 
-with open("baseline1.csv", "w", newline="") as f:
+with open("./../data/baseline1&2/gen_data/baseline1_%s.csv" % output_str, "w", newline="") as f:
     fieldnames = ['te', 'sa', 'da', 'byt', 'teDelta']
     writer = csv.writer(f)
     writer.writerow(fieldnames)
     writer.writerows(gen_data)
+
+endtime = datetime.now()
+print('process time', (endtime-starttime).seconds/60, 'mins')
