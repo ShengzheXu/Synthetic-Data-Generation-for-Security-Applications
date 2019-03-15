@@ -39,10 +39,11 @@ def filter(source_data, name_str):
     
 
 if __name__ == "__main__":
-    # source_data = './../data/day_1_42.219.153.89/day_1_42.219.153.89.csv'
-    ip_str = '42.219.158.226'
-    ip_str = 'sampled_10IPs'
-    source_data = 'baseline1&2/raw_data/day_1_%s.csv' % ip_str
-    filter(source_data, ip_str)
+    # ip_str = '42.219.158.226'
+    ten_ips = ['42.219.153.7', '42.219.153.89', '42.219.155.56', '42.219.155.26', '42.219.159.194',
+            '42.219.152.249', '42.219.159.82', '42.219.159.92', '42.219.159.94', '42.219.158.226']
+    for ip_str in ten_ips:
+        source_data = 'baseline1&2/raw_data/day_1_%s.csv' % ip_str
+        filter(source_data, ip_str)
 
 #     rectify_byt()

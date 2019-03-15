@@ -1,0 +1,14 @@
+one_ip,baseline1 ==> time:27.433333333333334mins
+ten_ip,baseline1 ==> time:342.28333333333336mins
+42.219.153.7,baseline1 ==> time:104.46666666666667mins
+42.219.153.89,baseline1 ==> time:96.9mins
+42.219.155.56,baseline1 ==> time:98.23333333333333mins
+42.219.155.26,baseline1 ==> time:68.6mins
+42.219.159.194,baseline1 ==> time:52.75mins
+42.219.152.249,baseline1 ==> time:48.43333333333333mins
+42.219.159.82,baseline1 ==> time:49.666666666666664mins
+42.219.159.92,baseline1 ==> time:48.61666666666667mins
+42.219.159.94,baseline1 ==> time:49.56666666666667mins
+42.219.159.82,baseline2 ==> time:71.83333333333333mins
+42.219.159.92,baseline2 ==> time:53.68333333333333mins
+42.219.159.94,baseline2 ==> time:57.93333333333333mins

@@ -37,7 +37,7 @@ def extract(theLocalIp):
             continue
         else:
             chunkNum += 1
-            chunk = chunk.sample(n=int(len(chunk.index)/10),random_state=131,axis=0)
+            # chunk = chunk.sample(n=int(len(chunk.index)/10),random_state=131,axis=0)
             print(len(chunk.index), "to write")
             if gen_flag:
                 # if totalLines + len(chunk.index) > targetLines:
@@ -105,11 +105,11 @@ if __name__ == "__main__":
     # extract('42.219.158.226')
 
     # extract(ten_ips)
-    sample_choice(outputfile % 'merged_10IPs', 637608) # 637608, '42.219.158.226'
+    # sample_choice(outputfile % 'merged_10IPs', 637608) # 637608, '42.219.158.226'
     
-    # for ip in ten_ips:
-    #     print('now extracting: %s' % ip)
-    #     extract(ip)
+    for ip in ten_ips:
+        print('now extracting: %s' % ip)
+        extract(ip)
 
 
 # 10667863, '42.219.156.211'
