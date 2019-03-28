@@ -75,24 +75,6 @@ def select_bayesian_output(t, b_1, learnt_p_B_gv_T_B1, bins_name):
     maxB = -1
     # print(bins_name)
     b1 = find_bin(b_1)
-    # for interval in bins_name:
-    #     # print(interval, b_1, find_bin(b_1)pr)
-    #     # p_B1_B[interval] = pr[find_bin(b_1)] # / pr[interval]
-    #     # print('b1|b', pr[find_bin(b_1)] , pr[interval] )
-    #     # p_T_B[interval] = all_record['bytBins'].value_counts()[interval] / all_record['bytBins'].size
-        
-    #     # print(df_t.size, df.size)
-    #     # print('t|b', all_record['bytBins'].value_counts()[interval] , all_record['bytBins'].size)
-    #     # print(interval, p_B1_B[interval], p_T_B[interval])
-    #     # print(b_1, find_bin(b_1))
-    #     # print(interval)
-    #     # print(p_B1_B)
-    #     # print("===========")
-    #     # print(p_B1_B[find_bin(b_1)].keys)
-    #     p_B_gv_T_B1 = p_T_B[t][interval] * p_B[interval] * p_B1_B[b1][interval]
-    #     if maxp < p_B_gv_T_B1:
-    #         maxp = p_B_gv_T_B1
-    #         maxB = interval
     maxB = max(learnt_p_B_gv_T_B1[t][b1].items(), key=operator.itemgetter(1))[0]
     return np.random.uniform(maxB.left, maxB.right)
 

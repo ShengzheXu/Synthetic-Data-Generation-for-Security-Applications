@@ -8,7 +8,6 @@ import pandas as pd
 
 # settings
 ip_str = '42.219.158.226'
-ip_str = 'sampled_10IPs'
 output_str = '10IP'
 
 starttime = datetime.now()
