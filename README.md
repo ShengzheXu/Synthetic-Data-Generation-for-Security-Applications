@@ -1,40 +1,44 @@
 # Synthetic-Data-Generation-for-Security-Applications
 
-|~data/
-| |-UGR16.py: extract target data from the whole raw data
-| |-split_timestamp.py: craft data to the cleaned data
-|~algorithm/
-| |-baselines.py: 3 classes, baseline1&2 class implementations and the father class which defines the interfaces
-| |-run_exp.py: encapsulated experiments entrance
-| |-validation.py: test modules
-|~output/
-| |+raw_data/: 10 csv files, which refer 10 users data of day1.
-| |+clean_data/: 10 csv files, which are supplemented by support info columns, like hour, delta time and #B-1
-| |+gen_data/: should be 22 csv files, which are generated data. 2×10+2 for (baseline1,2)×[(10users)+(avg during process)
-| |-exp_record.txt: experiments parameters settings and process time
+## how to do a quick generation?
 
-argmax_B { P(B|T, B-1) = P(T|B) * P(B-1|B) * P(B) }
+    Step1. Download the UGR16 data from the website, like april.week3.csv.uniqblacklistremoved
+    Step2. Analysis the occurence of the data and extract raw data of some users. 
+        `python UGR16.py`  
+    Step3. Clean and make up the raw data and generate the cleaned data
+        `python split_timestamp.py'
+    Step4. Modify the config file or later use the command line to override
+        `python run_exp.py`
+    Step5. Use KL to validate the generated data.
+        `python validation.py'
 
-42.219.153.7,baseline1 ==> time:104.46666666666667mins
-42.219.153.89,baseline1 ==> time:96.9mins
-42.219.155.56,baseline1 ==> time:98.23333333333333mins
-42.219.155.26,baseline1 ==> time:68.6mins
-42.219.159.194,baseline1 ==> time:52.75mins
-42.219.152.249,baseline1 ==> time:48.43333333333333mins
-42.219.159.82,baseline1 ==> time:49.666666666666664mins
-42.219.159.92,baseline1 ==> time:48.61666666666667mins
-42.219.159.94,baseline1 ==> time:49.56666666666667mins
-42.219.158.226,baseline1 ==> time:27.433333333333334mins
+## design structure
 
-42.219.153.7,baseline2 ==> time:164.36666666666667mins
-42.219.153.89,baseline2 ==> time:155.83333333333334mins
-42.219.155.56,baseline2 ==> time:77.23333333333333mins
-42.219.155.26,baseline2 ==> time:64.75mins
-42.219.159.194,baseline2 ==> time:65.2mins
-42.219.158.226,baseline2 ==> time:163.03333333333333mins
+    |~datasets/
+    | |-UGR16.py: extract target data from the whole raw data
+    | |-split_timestamp.py: craft data to the cleaned data
+    |~models/
+    | |-baselines.py: 3 classes, baseline1&2 class implementations and the father class which defines the interfaces
+    | |-run_exp.py: encapsulated experiments entrance
+    | |-validation.py: test modules
+    |~output/
+    | |+raw_data/: 10 csv files, which refer 10 users data of day1.
+    | |+clean_data/: 10 csv files, which are supplemented by support info columns, like hour, delta time and #B-1
+    | |+gen_data/: 2 csv files for baseline1&2. Each one contain 5 days generated data.
+    | |-exp_record.txt: experiments parameters settings and process time
 
-ten_ip,baseline1 ==> time:342.28333333333336mins
-ten_ips,baseline2 ==> time:657.7mins
+## baseline 1
+
+    GMM - 7 cluster for the #B.
+
+## baseline 2
+
+    Baseline2 rule:
+    argmax_B { P(B|T, B-1) = P(T|B) * P(B-1|B) * P(B) }
+
+    Theoretically, the very first sample to be generated should be the marginal distribution P(B)
+
+## data usage
 
     # 1366940, '42.219.153.7'      
     # 1342589, '42.219.153.89'     

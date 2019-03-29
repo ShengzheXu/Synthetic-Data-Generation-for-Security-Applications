@@ -8,7 +8,7 @@ import operator
 class baseline(object):
     def __init__(self):
         pass
-    
+
     def fit(self):
         pass
 
@@ -33,6 +33,10 @@ class baseline1(baseline):
         gen_byt = int(np.exp(gen_byt[0]))
 
         gen_te_delta, _ = self.teDelta_model.sample()
+        # gen_te_delta = [39600]
+        time_eps = np.random.randint(6)
+        if time_eps == 0:
+            gen_te_delta = [gen_te_delta[0]+1]
         gen_te_delta = int(gen_te_delta[0]) if int(gen_te_delta[0])>=0 else 0
         self.start_date_time_obj = self.start_date_time_obj + timedelta(seconds=gen_te_delta)
         gen_te = self.start_date_time_obj.strftime("%Y-%m-%d %H:%M:%S")
@@ -59,6 +63,9 @@ class baseline2(baseline):
     
     def generate_one(self, dep_info):
         gen_te_delta, _ = self.teDelta_model.sample()
+        time_eps = np.random.randint(6)
+        if time_eps == 0:
+            gen_te_delta = [gen_te_delta[0]+1]
         gen_te_delta = int(gen_te_delta[0]) if int(gen_te_delta[0])>=0 else 0
         self.start_date_time_obj = self.start_date_time_obj + timedelta(seconds=gen_te_delta)
         gen_te = self.start_date_time_obj.strftime("%Y-%m-%d %H:%M:%S")
@@ -82,6 +89,9 @@ class baseline2(baseline):
 
     def build_bayesian_dep(self, all_record, log_byt_col, log_byt_1_col, clf):
         cats = pd.cut(log_byt_col, self.bins)
+        print('bytlen', len(log_byt_col))
+        print('dfcollen', all_record.shape)
+
         all_record['bytBins'] = cats
 
         cats = pd.cut(log_byt_1_col, self.bins)

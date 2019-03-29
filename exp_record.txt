@@ -12,3 +12,7 @@ ten_ip,baseline1 ==> time:342.28333333333336mins
 42.219.159.82,baseline2 ==> time:71.83333333333333mins
 42.219.159.92,baseline2 ==> time:53.68333333333333mins
 42.219.159.94,baseline2 ==> time:57.93333333333333mins
+====================================
+
+10users,5days,baseline1 ==> time:214.26666666666668mins
+10users,5days,baseline2 ==> time:358.05mins
