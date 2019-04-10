@@ -2,6 +2,7 @@ from models.baselines import baseline1
 from models.baselines import baseline2
 from datetime import datetime
 from datetime import timedelta
+from utils.config_utils import recieve_cmd_config
 import numpy as np
 import pandas as pd
 import argparse
@@ -123,12 +124,6 @@ def do_one():
         myfile.write(str(len(user_list)) + 'users,' + str(day_number) +'days,'+ baseline_choice
             + ' ==> time:' + str((endtime-starttime).seconds/60) + 'mins\n')
 
-def recieve_cmd_config(config_dict):
-    parser = argparse.ArgumentParser()
-    parser.add_argument('-baseline', dest='baseline')
-    args = vars(parser.parse_args())
-
-    config_dict.update({k: v for k, v in args.items() if v is not None})  # Update if v is not None
 
 if __name__ == "__main__":
     # load in the configs
@@ -143,4 +138,4 @@ if __name__ == "__main__":
     recieve_cmd_config(config['DEFAULT'])
     
     # run the experiment
-    #do_one()
+    do_one()
