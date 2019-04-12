@@ -1,2 +1,3 @@
 data/*
+params_*.npy
 *.pyc

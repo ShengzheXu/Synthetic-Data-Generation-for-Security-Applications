@@ -4,6 +4,7 @@ import scipy.stats
 from sklearn.metrics.cluster import normalized_mutual_info_score
 import configparser
 from utils.config_utils import recieve_cmd_config
+from utils.plot_utils import boxplot
 
 def KLc(a, b):
     a = np.asarray(a, dtype=np.float)
@@ -38,6 +39,7 @@ def vali_one(raw_ip_str, gen_ip_str):
     KL = scipy.stats.entropy(pr1, pr2)
     # NMI = normalized_mutual_info_score(pr2,pr2)
     print(raw_ip_str + ',' + gen_ip_str + ','+ str(KL)) #, ",NMI", NMI)
+    return KL
 
 
 if __name__ == "__main__":
@@ -46,25 +48,37 @@ if __name__ == "__main__":
     config.read('config.ini')
     user_list = config['DEFAULT']['userlist'].split(',')
     baseline_choice = config['DEFAULT']['baseline']
-    # user_list = ['42.219.153.7', '42.219.153.89', '42.219.158.226']
     test_list = config['VALIDATE']['test_set'].split(',')
     
     # override the config with the command line
     recieve_cmd_config(config['DEFAULT'])
-    print(test_list)
 
     if config['VALIDATE']['raw_compare'] == 'True':
+        x_data = []
+        y_data = []
         for ip1 in user_list:
+            x_data.append(ip1)
+            y_data_i = []
             for ip2 in user_list:
                 if ip1 == ip2:
                     continue
                 src_file = 'raw_data/day_1_%s.csv' % ip1
                 des_file = 'raw_data/day_1_%s.csv' % ip2
-                vali_one(src_file, des_file)
+                y_data_i.append(vali_one(src_file, des_file))
+            y_data.append(y_data_i)
+            
+        boxplot(x_data, y_data, title='KL of 1 raw ip || other 9 ips')
 
     if config['VALIDATE']['gen_compare'] == 'True':
-        for ip1 in user_list:
-            for ip2 in test_list: 
+        x_data = []
+        y_data = []
+        for ip2 in test_list:
+            x_data.append(ip2)
+            y_data_i = []
+            for ip1 in user_list: 
                 src_file = 'raw_data/day_1_%s.csv' % ip1
                 des_file = 'gen_data/%s.csv' % ip2
-                vali_one(src_file, des_file)
+                y_data_i.append(vali_one(src_file, des_file))
+            y_data.append(y_data_i)
+        
+        boxplot(x_data, y_data, title='KL of 10 raw ips || gen baselines')

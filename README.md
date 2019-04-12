@@ -12,6 +12,23 @@
     Step5. Use KL to validate the generated data.
         `python validation.py'
 
+## hyperparameters setting
+
+    Refer to the config.ini file. Three categories settings are considered so far.
+    
+    1. [Default], making sure the basic functionality can work.
+        userlist: ip users to be considered and learned.
+        baseline: model choice.
+
+    2. [GENERATE], describing generation ralevant issues.
+        save_to_csv: whether output the generated data to the disk.
+        gen_users: ip suers that to be generated as the sip.
+        original_date, gen_daynumber: how many days to be generated and the start date of them.
+
+    3. [VALIDATE], describing validation ralevant issues.
+        test_set: file location that to be tested.
+        raw_compare, gen_compare: 2 groups of experiments.
+
 ## design structure
 
     |~datasets/

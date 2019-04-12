@@ -13,14 +13,16 @@ np.random.seed(131)
 user_list = []
 baseline_choice = 'baseline1'
 day_number = 1
+original_date = ''
 real_gen = 'no'
+saving_str = ''
 
 def data_prepare(ip_str):
     source_data = './data/baseline1&2/cleaned_data/expanded_day_1_%s.csv' % ip_str
     all_record = pd.read_csv(source_data)
-    print('pre', all_record.shape)
+    # print('pre', all_record.shape)
     all_record = all_record.sample(frac=0.1, random_state=1)
-    print('after',all_record.shape)
+    # print('after',all_record.shape)
 
     byt_train = np.reshape(all_record['byt'].values, (-1, 1))
     byt_log_train = np.log(byt_train)
@@ -36,12 +38,14 @@ def data_prepare(ip_str):
 
     return byt_log_train, time_delta_train, sip, dip_train, byt1_log_train, teT_df_col
 
-def model_prepare(sip, byt_log_train, time_delta_train, dip_train, byt1_log_train=None, teT_df_col=None):
+def model_prepare(original_date, sip, byt_log_train, time_delta_train, dip_train, byt1_log_train=None, teT_df_col=None):
     if baseline_choice == 'baseline1':
-        meta_model = baseline1(sip, byt_log_train, time_delta_train, dip_train)
+        meta_model = baseline1(original_date, sip, byt_log_train, time_delta_train, dip_train)
+        # meta_model.save_params(meta_model.byt_model)
+        # meta_model.load_params(meta_model.byt_model)
         return meta_model
     elif baseline_choice == 'baseline2':
-        meta_model = baseline2(sip, byt_log_train, time_delta_train, dip_train, byt1_log_train, teT_df_col)
+        meta_model = baseline2(original_date, sip, byt_log_train, time_delta_train, dip_train, byt1_log_train, teT_df_col)
         return meta_model
     else:
         pass
@@ -50,7 +54,7 @@ def flush(gen_data):
     # write to a csv file
     import csv
     import os
-    gen_file = "./data/baseline1&2/gen_data/%s_%sdays.csv" % (baseline_choice, day_number)
+    gen_file = "./data/baseline1&2/%s" % saving_str
     label = True
     if os.path.isfile(gen_file):
         label = False
@@ -90,7 +94,7 @@ def do_one():
         gc.collect()
 
     print(final_teT_df_col.shape)
-    model1 = model_prepare(final_sip, final_byt_log_train, final_time_delta_train, final_dip_train, final_byt1_log_train, final_teT_df_col)
+    model1 = model_prepare(original_date, final_sip, final_byt_log_train, final_time_delta_train, final_dip_train, final_byt1_log_train, final_teT_df_col)
 
     gen_data = []
     now_t = 0
@@ -128,14 +132,21 @@ def do_one():
 if __name__ == "__main__":
     # load in the configs
     config = configparser.ConfigParser()
-    config.read('config-bl2.ini')
+    config.read('config.ini')
     user_list = config['DEFAULT']['userlist'].split(',')
     baseline_choice = config['DEFAULT']['baseline']
-    day_number = int(config['DEFAULT']['daynumber'])
-    real_gen = config['DEFAULT']['do_gen']
+    
+    real_gen = config['GENERATE']['save_to_csv']
+    gen_users = config['GENERATE']['gen_users'].split(',')
+    original_date = config['GENERATE']['original_date']
+    day_number = int(config['GENERATE']['gen_daynumber'])
     
     # override the config with the command line
     recieve_cmd_config(config['DEFAULT'])
     
     # run the experiment
-    do_one()
+    # saving_str = "gen_data/%s_%sdays.csv" % (baseline_choice, day_number)
+    # do_one()
+    for i in range(len(gen_users)):
+        saving_str = "gen_data/multi_users/%s_%sdays_%s.csv" % (baseline_choice, day_number, gen_users[i])
+        do_one()

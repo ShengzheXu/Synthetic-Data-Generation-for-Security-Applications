@@ -14,20 +14,36 @@ class baseline(object):
 
     def generate_one(self):
         pass
+    
+    def save_params(self, gmm_model, params_dir=None):
+        np.save("params_weights.npy", gmm_model.weights_)
+        np.save("params_mu.npy", gmm_model.means_)
+        np.save("params_sigma.npy", gmm_model.covariances_)
+        print("<=====Model Parameters Saved")
+
+    def load_params(self, gmm_model, params_dir=None):
+        weights = np.load("params_weights.npy")
+        mu = np.load("params_mu.npy")
+        sigma = np.load("params_sigma.npy")
+        gmm_model.weights_ = weights   # mixture weights (n_components,) 
+        gmm_model.means_ = mu          # mixture means (n_components, 2) 
+        gmm_model.covariances_ = sigma  # mixture cov (n_components, 2, 2)
+        print("<=====Model Parameters Loaded")
+
 
 class baseline1(baseline):
-    def __init__(self, sip, byt_log_train, time_delta_train, dip_train):
+    def __init__(self, start_date, sip, byt_log_train, time_delta_train, dip_train):
         self.sip = sip
         self.byt_model = mixture.GaussianMixture(n_components=7, covariance_type='full').fit(byt_log_train)
         self.teDelta_model = mixture.GaussianMixture(n_components=7, covariance_type='full').fit(time_delta_train)
-        start_date_time_str = '2016-04-11 00:00:00'  
+        start_date_time_str = start_date
         self.start_date_time_obj = datetime.strptime(start_date_time_str, '%Y-%m-%d %H:%M:%S')
 
         def choice_from_dip_pool():
             return np.random.choice(dip_train, 1)
 
         self.dip_model = choice_from_dip_pool
-    
+
     def generate_one(self, dep_info=None):
         gen_byt, _ = self.byt_model.sample()
         gen_byt = int(np.exp(gen_byt[0]))
@@ -45,7 +61,7 @@ class baseline1(baseline):
         return gen_te, gen_dip, gen_byt, gen_te_delta
 
 class baseline2(baseline):
-    def __init__(self, sip, byt_log_train, time_delta_train, dip_train, byt1_log_train, teT_col):
+    def __init__(self, start_date, sip, byt_log_train, time_delta_train, dip_train, byt1_log_train, teT_col):
         eps = 1e-5
         self.bins = [0-eps, 3.7, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.5, 20]
         self.sip = sip
@@ -53,7 +69,7 @@ class baseline2(baseline):
         self.learnt_p_B_gv_T_B1 = self.build_bayesian_dep(teT_col, np.ravel(byt_log_train), np.ravel(byt1_log_train), self.byt_model)
 
         self.teDelta_model = mixture.GaussianMixture(n_components=7, covariance_type='full').fit(time_delta_train)
-        start_date_time_str = '2016-04-11 00:00:00'  
+        start_date_time_str = start_date 
         self.start_date_time_obj = datetime.strptime(start_date_time_str, '%Y-%m-%d %H:%M:%S')
 
         def choice_from_dip_pool():
