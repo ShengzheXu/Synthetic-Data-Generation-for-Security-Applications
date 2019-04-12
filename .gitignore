@@ -1,3 +1,4 @@
 data/*
 params_*.npy
 *.pyc
+*.zip

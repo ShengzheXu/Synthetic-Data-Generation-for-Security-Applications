@@ -1,5 +1,12 @@
 # Synthetic-Data-Generation-for-Security-Applications
 
+## data preparation
+
+use the link to download extracted raw data, processed data and the generated data. [[Dropbox](https://www.dropbox.com/s/uabnmy3b3b3ltna/data.zip?dl=0)]
+
+
+If downloaded data in this way, you can go to step 4 directly.
+
 ## how to do a quick generation?
 
     Step1. Download the UGR16 data from the website, like april.week3.csv.uniqblacklistremoved

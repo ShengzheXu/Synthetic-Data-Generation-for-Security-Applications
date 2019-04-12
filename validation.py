@@ -56,10 +56,10 @@ if __name__ == "__main__":
     if config['VALIDATE']['raw_compare'] == 'True':
         x_data = []
         y_data = []
-        for ip1 in user_list:
-            x_data.append(ip1)
+        for ip2 in user_list:
+            x_data.append(ip2)
             y_data_i = []
-            for ip2 in user_list:
+            for ip1 in user_list:
                 if ip1 == ip2:
                     continue
                 src_file = 'raw_data/day_1_%s.csv' % ip1
@@ -80,5 +80,13 @@ if __name__ == "__main__":
                 des_file = 'gen_data/%s.csv' % ip2
                 y_data_i.append(vali_one(src_file, des_file))
             y_data.append(y_data_i)
+        
+        x_data.append('10 users 1 day to their own raw')
+        y_data_i = []
+        for ip3 in user_list:
+            src_file = 'raw_data/day_1_%s.csv' % ip3
+            des_file = 'gen_data/multi_users/baseline2_1days_%s.csv' % ip3
+            y_data_i.append(vali_one(src_file, des_file))
+        y_data.append(y_data_i)
         
         boxplot(x_data, y_data, title='KL of 10 raw ips || gen baselines')
