@@ -16,12 +16,15 @@ day_number = 1
 original_date = ''
 real_gen = 'no'
 saving_str = ''
+working_folder = ''
+sample_flag = 'False'
 
-def data_prepare(ip_str):
-    source_data = './data/baseline1&2/cleaned_data/expanded_day_1_%s.csv' % ip_str
+def data_prepare(ip_str, sample_flag):
+    source_data = working_folder + 'cleaned_data/expanded_day_1_%s.csv' % ip_str
     all_record = pd.read_csv(source_data)
     # print('pre', all_record.shape)
-    all_record = all_record.sample(frac=0.1, random_state=1)
+    if sample_flag == 'True':
+        all_record = all_record.sample(frac=0.1, random_state=1)
     # print('after',all_record.shape)
 
     byt_train = np.reshape(all_record['byt'].values, (-1, 1))
@@ -54,7 +57,7 @@ def flush(gen_data):
     # write to a csv file
     import csv
     import os
-    gen_file = "./data/baseline1&2/%s" % saving_str
+    gen_file = working_folder+saving_str
     label = True
     if os.path.isfile(gen_file):
         label = False
@@ -76,8 +79,8 @@ def do_one():
 
 
     for deal_str in user_list:
-        print(deal_str)
-        byt_log_train, time_delta_train, sip, dip_train, byt1_log_train, teT_df_col = data_prepare(deal_str)
+        print('loading:' + deal_str)
+        byt_log_train, time_delta_train, sip, dip_train, byt1_log_train, teT_df_col = data_prepare(deal_str, sample_flag)
 
         final_byt_log_train = np.concatenate((final_byt_log_train, byt_log_train))
         final_time_delta_train = np.concatenate((final_time_delta_train, time_delta_train))
@@ -133,20 +136,28 @@ if __name__ == "__main__":
     # load in the configs
     config = configparser.ConfigParser()
     config.read('config.ini')
+    # override the config with the command line
+    recieve_cmd_config(config['DEFAULT'])
+    
     user_list = config['DEFAULT']['userlist'].split(',')
     baseline_choice = config['DEFAULT']['baseline']
+    working_folder = config['DEFAULT']['working_folder']
+    sample_flag = config['DEFAULT']['sample_from_raw_data']
     
     real_gen = config['GENERATE']['save_to_csv']
+    gen_multi_user = config['GENERATE']['gen_multi_user']
     gen_users = config['GENERATE']['gen_users'].split(',')
     original_date = config['GENERATE']['original_date']
     day_number = int(config['GENERATE']['gen_daynumber'])
     
-    # override the config with the command line
-    recieve_cmd_config(config['DEFAULT'])
-    
     # run the experiment
-    # saving_str = "gen_data/%s_%sdays.csv" % (baseline_choice, day_number)
-    # do_one()
-    for i in range(len(gen_users)):
-        saving_str = "gen_data/multi_users/%s_%sdays_%s.csv" % (baseline_choice, day_number, gen_users[i])
+    if gen_multi_user == 'True':
+        print('generating multi users')
+        for i in range(len(gen_users)):
+            saving_str = "gen_data/multi_users/%s_%sdays_%s.csv" % (baseline_choice, day_number, gen_users[i])
+            do_one()
+    else:
+        print('generating single user')
+        saving_str = "gen_data/%s_%sdays.csv" % (baseline_choice, day_number)
         do_one()
+    

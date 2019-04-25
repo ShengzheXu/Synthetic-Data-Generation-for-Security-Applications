@@ -1,6 +1,17 @@
-"""Plot utility functions."""
+"""Plot utility functions.
+
+selected colors with https://www.jianshu.com/p/c6660e75f773
+fill(files, 'salmon', 'red', 'unify')
+fill(files1, 'lightgreen', 'green', 'upo3')
+fill(files2, 'cyan', 'blue', 'ppo')
+fill(files3, 'orchid', 'purple', 'acktr')
+fill(files4, 'grey', 'black', 'a2c')
+"""
 
 import matplotlib.pyplot as plt
+
+colors = ['#348ABD', '#A60628', '#7A68A6', '#467821', '#D55E00', 
+        '#CC79A7', '#56B4E9', '#009E73', '#F0E442', '#0072B2']
 
 # def boxplot(x_data, y_data, base_color="#539caf", median_color="#297083", x_label="", y_label="", title=""):
 def boxplot(x_data, y_data, base_color="cornflowerblue", median_color="darkorange", x_label="", y_label="", title=""):
@@ -27,9 +38,35 @@ def boxplot(x_data, y_data, base_color="cornflowerblue", median_color="darkorang
     ax.set_title(title)
     plt.show()
 
-# selected colors
-# fill(files, 'salmon', 'red', 'unify')
-# fill(files1, 'lightgreen', 'green', 'upo3')
-# fill(files2, 'cyan', 'blue', 'ppo')
-# fill(files3, 'orchid', 'purple', 'acktr')
-# fill(files4, 'grey', 'black', 'a2c')
+def temporal_lineplot(x_data, y_data, x_label="", y_label="", title=""):
+    # Create the plot object
+    _, ax = plt.subplots()
+
+    # Plot the best fit line, set the linewidth (lw), color and
+    # transparency (alpha) of the line
+    t = list(range(24))
+    line_num = 0
+
+    for user in x_data:
+        ax.plot(t, y_data[line_num], lw = 2, color = colors[line_num], alpha = 0.8, label=user)
+        # ax.text(23, y_data[line_num][-1], user, horizontalalignment='left', size='small', color=colors[line_num])
+        line_num += 1
+
+    # Label the axes and provide a title
+    ax.set_title(title)
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    ax.legend(loc=0, ncol=2)
+    plt.show()
+
+def plot_source_distribution(self, value_list, fig_name='data_dist', range_=None, bins_=100,
+        title_='Frequency of records by number of bytes' , x_label='number of bytes', y_label='Number of records'):
+    plt.style.use('bmh')
+
+    fig = plt.figure(figsize=(11,3))
+    _ = plt.title(title_)
+    _ = plt.xlabel(x_label)
+    _ = plt.ylabel(y_label)
+    _ = plt.hist(value_list, range=range_, bins=bins_, histtype='stepfilled')
+
+    fig.savefig(fig_name)

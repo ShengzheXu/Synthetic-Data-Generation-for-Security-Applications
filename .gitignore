@@ -1,4 +1,4 @@
-data/*
+data/baseline1&2/*
 params_*.npy
 *.pyc
 *.zip

@@ -9,22 +9,39 @@ from utils.plot_utils import boxplot
 def KLc(a, b):
     a = np.asarray(a, dtype=np.float)
     b = np.asarray(b, dtype=np.float)
-
+    
     return np.sum(np.where(a != 0, a * np.log(a / b), 0))
 
-def vali_one(raw_ip_str, gen_ip_str):
-    rawdata = pd.read_csv('./data/baseline1&2/%s' % raw_ip_str)
-    gendata = pd.read_csv('./data/baseline1&2/%s' % gen_ip_str)
-    
-    values1 = np.log(list(rawdata.byt))
-    values2 = np.log(list(gendata.byt))
+working_folder = ''
 
-    cats1, bins = pd.qcut(values1, 10, retbins=True, duplicates='drop')
+def vali_one(raw_ip_str, gen_ip_str):
+    rawdata = pd.read_csv(working_folder + raw_ip_str)
+    gendata = pd.read_csv(working_folder + gen_ip_str)
+
+    # values1 = np.asarray(list(rawdata.byt))
+    # values2 = np.asarray(list(gendata.byt))
+    values1 = list(rawdata.byt)
+    values2 = list(gendata.byt)
+
+    max_value_1 = max(values1)
+    max_value_2 = max(values2)
+    maxn = max(max_value_1, max_value_2)
+    
+    eps = 0.01
+    bins = np.linspace(0, maxn+eps, 10)
+    print(bins)
+    # if max_value_1 > max_value_2:
+    #     _, bins = pd.qcut(values1, 10, retbins=True, duplicates='drop')
+    # else:
+    #     _, bins = pd.qcut(values2, 10, retbins=True, duplicates='drop')
+    # print(count_unique_value_raw, count_unique_value_gen, len(bins))
+
+    cats1 = pd.cut(values1, bins)
     pr1 = cats1.value_counts()/cats1.size
     # print(pr1)
-    # print("======>")
-    # print(cats1.value_counts())
-    # print("======>")
+    print("======>")
+    print(cats1.value_counts())
+    print("======>")
     # print(bins)
     # print(type(bins))
     pr1 = list(pr1)
@@ -32,7 +49,10 @@ def vali_one(raw_ip_str, gen_ip_str):
     cats2 = pd.cut(values2, bins)
     pr2 = (cats2.value_counts()+1)/(cats2.size+1)
     # print(pr2)
-    # pr2 = list(pr2)
+    print("<======")
+    print(cats2.value_counts())
+    print("<======")
+    pr2 = list(pr2)
 
     # print(pr1+pr2)
 
@@ -46,13 +66,14 @@ if __name__ == "__main__":
     # load in the configs
     config = configparser.ConfigParser()
     config.read('config.ini')
-    user_list = config['DEFAULT']['userlist'].split(',')
-    baseline_choice = config['DEFAULT']['baseline']
-    test_list = config['VALIDATE']['test_set'].split(',')
-    
     # override the config with the command line
     recieve_cmd_config(config['DEFAULT'])
+    
+    user_list = config['DEFAULT']['userlist'].split(',')
+    test_list = config['VALIDATE']['test_set'].split(',')
+    working_folder = config['DEFAULT']['working_folder']
 
+    # user_list.reverse()
     if config['VALIDATE']['raw_compare'] == 'True':
         x_data = []
         y_data = []
@@ -67,7 +88,7 @@ if __name__ == "__main__":
                 y_data_i.append(vali_one(src_file, des_file))
             y_data.append(y_data_i)
             
-        boxplot(x_data, y_data, title='KL of 1 raw ip || other 9 ips')
+        boxplot(x_data, y_data, title='KL of other 9 raw ips || 1 raw_ip')
 
     if config['VALIDATE']['gen_compare'] == 'True':
         x_data = []
@@ -81,12 +102,12 @@ if __name__ == "__main__":
                 y_data_i.append(vali_one(src_file, des_file))
             y_data.append(y_data_i)
         
-        x_data.append('10 users 1 day to their own raw')
-        y_data_i = []
-        for ip3 in user_list:
-            src_file = 'raw_data/day_1_%s.csv' % ip3
-            des_file = 'gen_data/multi_users/baseline2_1days_%s.csv' % ip3
-            y_data_i.append(vali_one(src_file, des_file))
-        y_data.append(y_data_i)
+        # x_data.append('10 users 1 day to their own raw')
+        # y_data_i = []
+        # for ip3 in user_list:
+        #     src_file = 'raw_data/day_1_%s.csv' % ip3
+        #     des_file = 'gen_data/multi_users/baseline2_1days_%s.csv' % ip3
+        #     y_data_i.append(vali_one(src_file, des_file))
+        # y_data.append(y_data_i)
         
         boxplot(x_data, y_data, title='KL of 10 raw ips || gen baselines')

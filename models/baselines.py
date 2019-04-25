@@ -7,7 +7,7 @@ import operator
 
 class baseline(object):
     def __init__(self):
-        pass
+        self.te_adj = False
 
     def fit(self):
         pass
@@ -29,10 +29,19 @@ class baseline(object):
         gmm_model.means_ = mu          # mixture means (n_components, 2) 
         gmm_model.covariances_ = sigma  # mixture cov (n_components, 2, 2)
         print("<=====Model Parameters Loaded")
+    
+    def adjusted_time_delta_for_high_throughput(self, te_delta):
+        adj_te_delta = int(te_delta[0]) if int(te_delta[0])>=0 else 0
+        if self.te_adj:
+            time_eps = np.random.randint(6)
+            if time_eps == 0:
+                adj_te_delta = [adj_te_delta[0]+1]
+        return adj_te_delta
 
 
 class baseline1(baseline):
     def __init__(self, start_date, sip, byt_log_train, time_delta_train, dip_train):
+        super().__init__()
         self.sip = sip
         self.byt_model = mixture.GaussianMixture(n_components=7, covariance_type='full').fit(byt_log_train)
         self.teDelta_model = mixture.GaussianMixture(n_components=7, covariance_type='full').fit(time_delta_train)
@@ -49,11 +58,8 @@ class baseline1(baseline):
         gen_byt = int(np.exp(gen_byt[0]))
 
         gen_te_delta, _ = self.teDelta_model.sample()
-        # gen_te_delta = [39600]
-        time_eps = np.random.randint(6)
-        if time_eps == 0:
-            gen_te_delta = [gen_te_delta[0]+1]
-        gen_te_delta = int(gen_te_delta[0]) if int(gen_te_delta[0])>=0 else 0
+        gen_te_delta = self.adjusted_time_delta_for_high_throughput(gen_te_delta)
+        
         self.start_date_time_obj = self.start_date_time_obj + timedelta(seconds=gen_te_delta)
         gen_te = self.start_date_time_obj.strftime("%Y-%m-%d %H:%M:%S")
         gen_dip = self.dip_model()[0]
@@ -62,6 +68,7 @@ class baseline1(baseline):
 
 class baseline2(baseline):
     def __init__(self, start_date, sip, byt_log_train, time_delta_train, dip_train, byt1_log_train, teT_col):
+        super().__init__()
         eps = 1e-5
         self.bins = [0-eps, 3.7, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.5, 20]
         self.sip = sip
@@ -79,10 +86,8 @@ class baseline2(baseline):
     
     def generate_one(self, dep_info):
         gen_te_delta, _ = self.teDelta_model.sample()
-        time_eps = np.random.randint(6)
-        if time_eps == 0:
-            gen_te_delta = [gen_te_delta[0]+1]
-        gen_te_delta = int(gen_te_delta[0]) if int(gen_te_delta[0])>=0 else 0
+        gen_te_delta = self.adjusted_time_delta_for_high_throughput(gen_te_delta)
+
         self.start_date_time_obj = self.start_date_time_obj + timedelta(seconds=gen_te_delta)
         gen_te = self.start_date_time_obj.strftime("%Y-%m-%d %H:%M:%S")
         gen_dip = self.dip_model()[0]
