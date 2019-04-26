@@ -5,12 +5,37 @@ from sklearn.metrics.cluster import normalized_mutual_info_score
 import configparser
 from utils.config_utils import recieve_cmd_config
 from utils.plot_utils import boxplot
+from models.baselines import baseline1
 
-def KLc(a, b):
-    a = np.asarray(a, dtype=np.float)
-    b = np.asarray(b, dtype=np.float)
+def KLc(p, q):
+    p = np.asarray(p, dtype=np.float)
+    q = np.asarray(q, dtype=np.float)
     
-    return np.sum(np.where(a != 0, a * np.log(a / b), 0))
+    return np.sum(np.where(p != 0, p * np.log(p / q), 0))
+
+def loglikelihood(p):
+    meta_model = baseline1()
+    meta_model.load_params(meta_model.byt_model)
+
+    logprob, responsibilities = meta_model.byt_model.score_samples(p)
+    pdf = np.exp(logprob)
+    return sum(logprob)
+
+def cross_validation_preparation(data):
+    k_fold = 5
+    csvfile = open('import_1458922827.csv', 'r').readlines()
+    filename = 1
+    len_rows = int(len(csvfile) / float(k_fold) * k_fold)
+    block_rows = len_rows / k_fold
+    for i in range(k_fold):
+        if i % block_rows == 0:
+            open(str(filename) + 'import_1458922827.csv', 'w').writelines(csvfile[i:i+block_rows])
+            filename += 1
+    # build 5 model
+    for i in range(k_fold):
+        # open test data and test loglikelihood
+        test_data = None
+        loglikelihood(test_data)
 
 working_folder = ''
 

@@ -38,7 +38,6 @@ def data_prepare(ip_str, sample_flag):
 
     teT_df_col = all_record#['teT']
 
-
     return byt_log_train, time_delta_train, sip, dip_train, byt1_log_train, teT_df_col
 
 def model_prepare(original_date, sip, byt_log_train, time_delta_train, dip_train, byt1_log_train=None, teT_df_col=None):

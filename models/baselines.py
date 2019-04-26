@@ -16,15 +16,19 @@ class baseline(object):
         pass
     
     def save_params(self, gmm_model, params_dir=None):
-        np.save("params_weights.npy", gmm_model.weights_)
-        np.save("params_mu.npy", gmm_model.means_)
-        np.save("params_sigma.npy", gmm_model.covariances_)
+        if params_dir is None:
+            params_dir = ""
+        np.save(params_dir+"params_weights.npy", gmm_model.weights_)
+        np.save(params_dir+"params_mu.npy", gmm_model.means_)
+        np.save(params_dir+"params_sigma.npy", gmm_model.covariances_)
         print("<=====Model Parameters Saved")
 
     def load_params(self, gmm_model, params_dir=None):
-        weights = np.load("params_weights.npy")
-        mu = np.load("params_mu.npy")
-        sigma = np.load("params_sigma.npy")
+        if params_dir is None:
+            params_dir = ""
+        weights = np.load(params_dir+"params_weights.npy")
+        mu = np.load(params_dir+"params_mu.npy")
+        sigma = np.load(params_dir+"params_sigma.npy")
         gmm_model.weights_ = weights   # mixture weights (n_components,) 
         gmm_model.means_ = mu          # mixture means (n_components, 2) 
         gmm_model.covariances_ = sigma  # mixture cov (n_components, 2, 2)
@@ -40,8 +44,11 @@ class baseline(object):
 
 
 class baseline1(baseline):
-    def __init__(self, start_date, sip, byt_log_train, time_delta_train, dip_train):
+    def __init__(self, start_date=None, sip=None, byt_log_train=None, time_delta_train=None, dip_train=None):
         super().__init__()
+        if start_date is None:
+            self.byt_model = mixture.GaussianMixture(n_components=7, covariance_type='full')
+            return
         self.sip = sip
         self.byt_model = mixture.GaussianMixture(n_components=7, covariance_type='full').fit(byt_log_train)
         self.teDelta_model = mixture.GaussianMixture(n_components=7, covariance_type='full').fit(time_delta_train)
