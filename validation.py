@@ -6,8 +6,12 @@ import configparser
 from utils.config_utils import recieve_cmd_config
 from utils.plot_utils import boxplot
 from models.baselines import baseline1
+from utils.distribution_utils import laplace_smoothing
 
 def KLc(p, q):
+    p = laplace_smoothing(p)
+    q = laplace_smoothing(q)
+    
     p = np.asarray(p, dtype=np.float)
     q = np.asarray(q, dtype=np.float)
     

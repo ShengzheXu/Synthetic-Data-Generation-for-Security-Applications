@@ -59,14 +59,32 @@ def temporal_lineplot(x_data, y_data, x_label="", y_label="", title=""):
     ax.legend(loc=0, ncol=2)
     plt.show()
 
-def plot_source_distribution(self, value_list, fig_name='data_dist', range_=None, bins_=100,
-        title_='Frequency of records by number of bytes' , x_label='number of bytes', y_label='Number of records'):
-    plt.style.use('bmh')
+# def plot_source_distribution(value_list, fig_name='data_dist', range_=None, bins_=100,
+#         title_='Frequency of records of users' , x_label='users', y_label='number of records (rows)'):
+#     plt.style.use('bmh')
+#     print(len(value_list))
+    
+#     fig = plt.figure(figsize=(11,3))
+#     _ = plt.title(title_)
+#     _ = plt.xlabel(x_label)
+#     _ = plt.ylabel(y_label)
+#     _ = plt.hist(value_list, histtype='stepfilled')
 
-    fig = plt.figure(figsize=(11,3))
-    _ = plt.title(title_)
-    _ = plt.xlabel(x_label)
-    _ = plt.ylabel(y_label)
-    _ = plt.hist(value_list, range=range_, bins=bins_, histtype='stepfilled')
+#     # fig.savefig(fig_name)
+#     plt.show()
 
-    fig.savefig(fig_name)
+def plot_source_distribution(y_data, x_label="users", y_label="log number of records (rows)", title="number of records of users"):
+    # Create the plot object
+    _, ax = plt.subplots()
+
+    # Plot the best fit line, set the linewidth (lw), color and
+    # transparency (alpha) of the line
+    x_data = list(range(len(y_data)))
+    ax.plot(x_data, y_data, lw = 2, color = colors[0], alpha = 0.8)
+
+    # Label the axes and provide a title
+    ax.set_title(title)
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    plt.show()
+    # plt.savefig('data_draw.png')

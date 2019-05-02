@@ -2,7 +2,6 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 import configparser
-# from plot_utils import plot_source_distribution
 import os
 import sys
 
@@ -19,8 +18,8 @@ outputfile = working_folder+'raw_data/day_1_%s.csv'
 def prepare_folders():
     if not os.path.exists(working_folder):
         os.makedirs(working_folder)
-    working_folder = ['raw_data', 'cleaned_data', 'gen_data']
-    for i in working_folder:
+    sub_folders = ['raw_data', 'cleaned_data', 'gen_data']
+    for i in sub_folders:
         if not os.path.exists(working_folder+i+'/'):
             os.makedirs(working_folder+i+'/')
 
@@ -48,13 +47,13 @@ def extract(theUserIP):
         # chunk = chunk.sample(n=int(len(chunk.index)/10),random_state=131,axis=0)
         if isinstance(theUserIP, list):
             for one_ip in theUserIP:
-                chunk2 = chunk[(chunk['sa'] == one_ip) & chunk['da'].str.startswith(internal_ip)]
+                chunk2 = chunk[chunk['sa'] == one_ip]
                 if gen_flag:
                     print(len(chunk2.index), "to write for", one_ip)
                     do_write(chunk2, one_ip)
                 del chunk2
         else:
-            chunk2 = chunk[(chunk['sa'] == theUserIP) & chunk['da'].str.startswith(internal_ip)]
+            chunk2 = chunk[chunk['sa'] == theUserIP]
             print(len(chunk2.index), "to write")
             do_write(chunk2, theUserIP)
             
@@ -76,7 +75,7 @@ def cal_stats(df, target_colname):
         else:
             occur_dict[r[0]] = 1
 
-def probe(theUserIP, target_colname, num_of_selected):
+def analyze(theUserIP, target_colname, num_of_selected):
     starttime = datetime.now()
     chunksize = 10 ** 6
     chunkNum = 0
@@ -86,7 +85,8 @@ def probe(theUserIP, target_colname, num_of_selected):
         chunk = chunk[chunk['te'].str.startswith(theDate)]
         if (len(chunk.index) == 0):
             break
-        chunk = chunk[chunk['sa'].str.startswith(theUserIP) & chunk['da'].str.startswith(theUserIP)]
+        chunk = chunk[chunk['sa'].str.startswith(theUserIP) | chunk['da'].str.startswith(theUserIP)]
+        # chunk = chunk[chunk['sa'].str.startswith(theUserIP)]
         chunkNum += 1
         cal_stats(chunk, target_colname)
         print("blockNum", chunkNum, "with", len(chunk.index))
@@ -106,11 +106,22 @@ def probe(theUserIP, target_colname, num_of_selected):
     endtime = datetime.now()
     print('process time', (endtime-starttime).seconds)
 
-# def plot_refer():
-#     source_data = 'data_stats.csv'
-#     a = pd.read_csv(source_data)
-#     plot_source_distribution(a['occurrence'].values)
+def plot_refer(stats_file):
+    a = pd.read_csv(stats_file)
+    a = a[a['ip'].str.startswith(internal_ip)]
+    a.to_csv('internal_only_'+stats_file, header='column_names', index=False)
+    sys.path.append('../')
+    print("current sys path:", sys.path)
+    from utils.plot_utils import plot_source_distribution
 
+    num_of_connection = a['occurrence'].values.tolist()
+    plot_source_distribution(np.log(num_of_connection))
+
+    user_addresses = a['ip'].values.tolist()
+    print(len(num_of_connection), sum(num_of_connection))
+    median_index = int(len(num_of_connection)/2)
+    for i in range(median_index-5, median_index+5):
+        print(user_addresses[i], num_of_connection[i])
 
 # call this function with python3 UGR16.py [arg], where [arg] is '-p' or '-e' (for probe and extract seperately).
 if __name__ == "__main__":
@@ -122,7 +133,12 @@ if __name__ == "__main__":
     
     if '-a' in sys.argv:
         print('reach analyze')
-        probe('42.219.', 'sa', 20)
+        analyze('42.219.', 'sa', 20)
+
+    if '-p' in sys.argv:
+        print('reach plot_stats')
+        stats_file = 'data_stats_3traffic.csv'
+        plot_refer(stats_file)
     
     if '-e' in sys.argv:
         print('reach extract')
@@ -138,6 +154,7 @@ if __name__ == "__main__":
         config = configparser.ConfigParser()
         config.read('./../config.ini')
         user_list = config['DEFAULT']['userlist'].split(',')
+        print('extracting:', user_list)
         prepare_folders()
         extract(user_list)
 

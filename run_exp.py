@@ -18,6 +18,7 @@ real_gen = 'no'
 saving_str = ''
 working_folder = ''
 sample_flag = 'False'
+bins = []
 
 def data_prepare(ip_str, sample_flag):
     source_data = working_folder + 'cleaned_data/expanded_day_1_%s.csv' % ip_str
@@ -47,7 +48,7 @@ def model_prepare(original_date, sip, byt_log_train, time_delta_train, dip_train
         # meta_model.load_params(meta_model.byt_model)
         return meta_model
     elif baseline_choice == 'baseline2':
-        meta_model = baseline2(original_date, sip, byt_log_train, time_delta_train, dip_train, byt1_log_train, teT_df_col)
+        meta_model = baseline2(original_date, sip, byt_log_train, time_delta_train, dip_train, byt1_log_train, teT_df_col, bins)
         return meta_model
     else:
         pass
@@ -100,7 +101,7 @@ def do_one():
 
     gen_data = []
     now_t = 0
-    last_b = 1
+    last_b = -1
     cnt = 0
     current_date = 11
     start_date = -1
@@ -142,12 +143,14 @@ if __name__ == "__main__":
     baseline_choice = config['DEFAULT']['baseline']
     working_folder = config['DEFAULT']['working_folder']
     sample_flag = config['DEFAULT']['sample_from_raw_data']
+    bins = config['DEFAULT']['bins'].split(',')
     
     real_gen = config['GENERATE']['save_to_csv']
     gen_multi_user = config['GENERATE']['gen_multi_user']
     gen_users = config['GENERATE']['gen_users'].split(',')
     original_date = config['GENERATE']['original_date']
     day_number = int(config['GENERATE']['gen_daynumber'])
+    
     
     # run the experiment
     if gen_multi_user == 'True':

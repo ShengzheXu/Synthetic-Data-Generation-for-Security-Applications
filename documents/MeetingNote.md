@@ -1,3 +1,53 @@
+# May 3rd meeting
+
+5. laplacian smoothing 
+https://www.youtube.com/watch?v=gCI-ZC7irbY
+
+4. question: for baseline2, what we generated is the probability of a bin. Like ['3', '6', '9', '12', '15', '18', '21']
+    that we can select a argmax(P[3-6), P[6-9), P[9-12) ... ). How to generate a accurate byt? Currently uniform sample a value from the selected range like [6, 9)
+
+    baseline2: also marginal distribution for first line, then joint distribution for later.
+
+0. log e
+
+1. should all bins edges should be fixed or it can be depends on the different user data?
+    current solution:
+        during preprocess the raw data, extract the max and min value of 10 users byt.
+        based on this overall max and min value to decide the bins for all 10 users.
+
+
+
+2. 788 user, 76710307 flows in total.
+42.219.155.70 4137
+42.219.155.20 4114
+42.219.153.113 4113
+42.219.170.246 4081
+42.219.158.243 4073
+42.219.153.48 4044
+42.219.154.172 3983
+42.219.153.165 3979
+42.219.145.70 3964
+42.219.155.12 3953
+
+3. workflow
+3.1 analyze data, get user_list and extract their data
+python3 .\datasets\analyze_and_extract_ugr16.py -p -e
+
+3.2 to preprocess data and generate the bins
+python3 .\process_ugr16_data.py -f
+
+3.3
+
+
+# April 30th Q&A notes
+
+1. do laplacian smoothing before log, so that our Q(i) coundn't be 0.
+
+2. Bin width: do equal width for now. Bin number: wikipedia heuristics. Maybe based on howmany data points that we have, then use the square root of #data points.
+https://www.statisticshowto.datasciencecentral.com/choose-bin-sizes-statistics/
+
+3. user selection: focus internal address. how many flows. user in the enterpreise.
+
 # April 26th meeting notes
 
 ## preparation

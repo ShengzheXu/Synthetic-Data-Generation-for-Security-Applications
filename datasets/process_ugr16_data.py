@@ -1,4 +1,7 @@
 import pandas as pd
+import numpy as np
+import configparser
+import math
 import os
 import sys
 
@@ -40,6 +43,9 @@ def filter(source_data, name_str):
 
     do_write(all_record, working_folder+'cleaned_data/expanded_day_1_%s.csv' % name_str)
 
+    # return the min & max of the byt
+    return all_record['byt'].min(axis = 0), all_record['byt'].max(axis = 0) 
+
 def split_file(source_data, name_str):
     all_record = pd.read_csv(source_data)
     theDate = '2016-04-11 '
@@ -57,10 +63,37 @@ def split_file(source_data, name_str):
         
         # do_write(chunk, source_data+hour_str+'/'+name_str)
 
+def decide_bin_scale(config, overall_min, overall_max):
+    log_overall_min = math.log(overall_min)
+    log_overall_max = math.log(overall_max)
+    print('logmin and logmax', log_overall_min, log_overall_max)
+    floor = math.floor(log_overall_min)
+    ceil = math.ceil(log_overall_max)
+    diff = ceil - floor
+    bin_number = math.floor(math.sqrt(ceil-floor))
+    while (bin_number <= diff):
+        if diff % bin_number == 0:
+            break
+        bin_number += 1
+    if bin_number == diff:
+        print("Warning! Need human defined bin number.")
+        return
+    bins = []
+    bin_size = int(diff / bin_number)
+    print('bin_number and bin_size', bin_number, bin_size)
+    while floor <= ceil:
+        bins.append(str(floor))
+        floor += bin_size
+    print('generated bins:', bins)
+    config['DEFAULT']['bins'] = ','.join(bins)
+    with open('./../config.ini', 'w') as configfile:
+        config.write(configfile)
+    pass
+
 if __name__ == "__main__":
-    # ten_ips = ['42.219.159.118', '42.219.159.76', '42.219.159.195', '42.219.159.171', '42.219.159.199',
-    #             '42.219.170.246', '42.219.159.186', '42.219.159.182', '42.219.159.179', '42.219.159.221']
-    ten_ips = ['42.219.159.170','42.219.159.95']
+    config = configparser.ConfigParser()
+    config.read('./../config.ini')
+    user_list = config['DEFAULT']['userlist'].split(',')
 
     if len(sys.argv) < 2:
         print('no instruction input.')
@@ -68,16 +101,25 @@ if __name__ == "__main__":
     
     if '-f' in sys.argv:
         print('reach filter, to generate the expanded_csv files')
-        for ip_str in ten_ips:
+        overall_min = 0x7f7f7f7f
+        overall_max = 0
+        print(overall_max, overall_min)
+        for ip_str in user_list:
             source_data = working_folder + 'raw_data/day_1_%s.csv' % ip_str
-            filter(source_data, ip_str)
+            min_value, max_value = filter(source_data, ip_str)
+            overall_min = min(overall_min, min_value)
+            overall_max = max(overall_max, max_value)
+            print(ip_str, 'min:', min_value, ', max:', max_value)
+        print(overall_min, overall_max)
+        # update the config_ini for the bin size issue
+        decide_bin_scale(config, overall_min, overall_max)
     
     if '-split_t' in sys.argv:
         print('reach split_t')
         target_dir = '../data/baseline1&2/gen_data/'
         target_name_pattern = ''
 
-        for ip_str in ten_ips:
+        for ip_str in user_list:
             source_data = 'data/baseline1&2/raw_data/'
             split_file(source_data, 'day_1_%s.csv' % ip_str)
         

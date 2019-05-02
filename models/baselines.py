@@ -74,10 +74,10 @@ class baseline1(baseline):
         return gen_te, gen_dip, gen_byt, gen_te_delta
 
 class baseline2(baseline):
-    def __init__(self, start_date, sip, byt_log_train, time_delta_train, dip_train, byt1_log_train, teT_col):
+    def __init__(self, start_date, sip, byt_log_train, time_delta_train, dip_train, byt1_log_train, teT_col, bins):
         super().__init__()
         eps = 1e-5
-        self.bins = [0-eps, 3.7, 4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.5, 20]
+        self.bins = bins
         self.sip = sip
         self.byt_model = mixture.GaussianMixture(n_components=7, covariance_type='full').fit(byt_log_train)
         self.learnt_p_B_gv_T_B1 = self.build_bayesian_dep(teT_col, np.ravel(byt_log_train), np.ravel(byt1_log_train), self.byt_model)
@@ -147,7 +147,7 @@ class baseline2(baseline):
             for interval_1 in bins_name:
                 df_b_1 = df[df['byt-1Bins'] == interval_1]
                 p_B1_B[interval_1][interval] = df_b_1.size / df.size
-        
+        print('testing:', p_B)
         learnt_p_B_gv_T_B1 = {}
         for t in range(24):
             learnt_p_B_gv_T_B1[t] = {}
@@ -159,7 +159,12 @@ class baseline2(baseline):
         return learnt_p_B_gv_T_B1
 
     def select_bayesian_output(self, t, b_1):
-        b1 = self.find_bin(np.log(b_1))
-        # print(t,b_1,b1)
-        maxB = max(self.learnt_p_B_gv_T_B1[t][b1].items(), key=operator.itemgetter(1))[0]
-        return np.random.uniform(maxB.left, maxB.right)
+        if b_1 == -1:
+            # first line
+            gen_byt, _ = self.byt_model.sample()
+            return gen_byt[0]
+        else:
+            b1 = self.find_bin(np.log(b_1))
+            # print(t,b_1,b1)
+            maxB = max(self.learnt_p_B_gv_T_B1[t][b1].items(), key=operator.itemgetter(1))[0]
+            return np.random.uniform(maxB.left, maxB.right)
