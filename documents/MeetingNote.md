@@ -1,4 +1,34 @@
+# May 10th meeting
+
+Observation: most of the traffic are incoming traffic, I mean the user_i is on the destination_ip position.
+61898 rows, 100 users, training data
+
+generate 10 days, 1 user, 6168 rows for baseline 1
+6154 rows for baseline 1
+
+bin_size selection
+https://en.wikipedia.org/wiki/Freedman%E2%80%93Diaconis_rule
+http://docs.astropy.org/en/stable/api/astropy.stats.freedman_bin_width.html#astropy.stats.freedman_bin_width
+http://www.jtrive.com/determining-histogram-bin-width-using-the-freedman-diaconis-rule.html
+
+GMM clusters selection
+https://notebooks.azure.com/api/user/Microsoft/library/biRjqEpoXjA/html/04.3-Density-GMM.ipynb
+
 # May 3rd meeting
+
+## discussion
+
+1. incoming & outgoining traffic is not independent. We want to model their byt together and distinguish their direction seperately. (build model for P(outgoing) & P(incoming))
+
+2. bar number should be the sqrt of the data point number in stead of value range.
+
+3. For each bin, to generate value in [the bin], just assum a uniform even probability for the time being.
+
+4. check why (10-23)hour results are too good.
+
+## preparation
+
+current job. Run. check baseline2 intergrate
 
 5. laplacian smoothing 
 https://www.youtube.com/watch?v=gCI-ZC7irbY
@@ -18,16 +48,16 @@ https://www.youtube.com/watch?v=gCI-ZC7irbY
 
 
 2. 788 user, 76710307 flows in total.
-42.219.155.70 4137
-42.219.155.20 4114
-42.219.153.113 4113
-42.219.170.246 4081
-42.219.158.243 4073
-42.219.153.48 4044
-42.219.154.172 3983
-42.219.153.165 3979
-42.219.145.70 3964
-42.219.155.12 3953
+42.219.155.70: 4137
+42.219.155.20: 4114
+42.219.153.113: 4113
+42.219.170.246: 4081
+42.219.158.243: 4073
+42.219.153.48: 4044
+42.219.154.172: 3983
+42.219.153.165: 3979
+42.219.145.70: 3964
+42.219.155.12: 3953
 
 3. workflow
 3.1 analyze data, get user_list and extract their data

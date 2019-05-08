@@ -34,21 +34,22 @@ def data_prepare(ip_str, sample_flag):
     byt1_log_train = np.log(byt1_train)
 
     time_delta_train = np.reshape(all_record['teDelta'].values, (-1, 1))
-    sip = all_record['sa'].values[0]
-    dip_train = np.ravel(all_record['da'].values)
+    sip = ip_str
+    sip_train_pool = np.ravel(all_record['sa'].values)
+    dip_train_pool = np.ravel(all_record['da'].values)
 
     teT_df_col = all_record#['teT']
 
-    return byt_log_train, time_delta_train, sip, dip_train, byt1_log_train, teT_df_col
+    return byt_log_train, time_delta_train, sip, sip_train_pool, dip_train_pool, byt1_log_train, teT_df_col
 
-def model_prepare(original_date, sip, byt_log_train, time_delta_train, dip_train, byt1_log_train=None, teT_df_col=None):
+def model_prepare(original_date, sip, byt_log_train, time_delta_train, sip_train, dip_train, byt1_log_train=None, teT_df_col=None):
     if baseline_choice == 'baseline1':
-        meta_model = baseline1(original_date, sip, byt_log_train, time_delta_train, dip_train)
+        meta_model = baseline1(original_date, sip, byt_log_train, time_delta_train, sip_train, dip_train)
         # meta_model.save_params(meta_model.byt_model)
         # meta_model.load_params(meta_model.byt_model)
         return meta_model
     elif baseline_choice == 'baseline2':
-        meta_model = baseline2(original_date, sip, byt_log_train, time_delta_train, dip_train, byt1_log_train, teT_df_col, bins)
+        meta_model = baseline2(original_date, sip, byt_log_train, time_delta_train, sip_train, dip_train, byt1_log_train, teT_df_col, bins)
         return meta_model
     else:
         pass
@@ -73,6 +74,7 @@ def do_one():
     final_byt_log_train = np.reshape(np.array([]), (-1, 1))
     final_time_delta_train = np.reshape(np.array([]), (-1, 1))
     final_sip = []
+    final_sip_train = np.ravel(np.array([]))
     final_dip_train = np.ravel(np.array([]))
     final_byt1_log_train = np.reshape(np.array([]), (-1, 1))
     final_teT_df_col = None
@@ -80,12 +82,13 @@ def do_one():
 
     for deal_str in user_list:
         print('loading:' + deal_str)
-        byt_log_train, time_delta_train, sip, dip_train, byt1_log_train, teT_df_col = data_prepare(deal_str, sample_flag)
+        byt_log_train, time_delta_train, sip, sip_train_pool, dip_train_pool, byt1_log_train, teT_df_col = data_prepare(deal_str, sample_flag)
 
         final_byt_log_train = np.concatenate((final_byt_log_train, byt_log_train))
         final_time_delta_train = np.concatenate((final_time_delta_train, time_delta_train))
         final_sip.append(sip)
-        final_dip_train = np.concatenate((final_dip_train, dip_train))
+        final_sip_train = np.concatenate((final_sip_train, sip_train_pool))
+        final_dip_train = np.concatenate((final_dip_train, dip_train_pool))
 
         final_byt1_log_train = np.concatenate((final_byt1_log_train, byt1_log_train))
         if final_teT_df_col is None:
@@ -93,12 +96,14 @@ def do_one():
         else:
             final_teT_df_col = final_teT_df_col.append(teT_df_col) #np.concatenate((final_teT_df_col, teT_df_col)) #
         # print(len(final_byt_log_train))
-        del byt_log_train, time_delta_train, sip, dip_train, byt1_log_train, teT_df_col
+        del byt_log_train, time_delta_train, sip, sip_train_pool, dip_train_pool, byt1_log_train, teT_df_col
         gc.collect()
 
     print(final_teT_df_col.shape)
-    model1 = model_prepare(original_date, final_sip, final_byt_log_train, final_time_delta_train, final_dip_train, final_byt1_log_train, final_teT_df_col)
-
+    model1 = model_prepare(original_date, final_sip, final_byt_log_train, final_time_delta_train, final_sip_train, final_dip_train, final_byt1_log_train, final_teT_df_col)
+    print(model1.likelihood)
+    # return
+    
     gen_data = []
     now_t = 0
     last_b = -1
@@ -107,8 +112,8 @@ def do_one():
     start_date = -1
     while True:
         dep_info = [now_t, last_b] if baseline_choice == 'baseline2' else []
-        gen_te, gen_dip, gen_byt, gen_te_delta = model1.generate_one(dep_info)
-        gen_data.append([gen_te, final_sip[0], gen_dip, gen_byt, gen_te_delta])
+        gen_te, gen_sip, gen_dip, gen_byt, gen_te_delta = model1.generate_one(dep_info)
+        gen_data.append([gen_te, gen_sip, gen_dip, gen_byt, gen_te_delta])
         now_t = int(str(gen_te)[11:13])
         last_b = gen_byt
         cnt += 1
@@ -143,7 +148,7 @@ if __name__ == "__main__":
     baseline_choice = config['DEFAULT']['baseline']
     working_folder = config['DEFAULT']['working_folder']
     sample_flag = config['DEFAULT']['sample_from_raw_data']
-    bins = config['DEFAULT']['bins'].split(',')
+    bins = list(map(float, config['DEFAULT']['bins'].split(',')))
     
     real_gen = config['GENERATE']['save_to_csv']
     gen_multi_user = config['GENERATE']['gen_multi_user']

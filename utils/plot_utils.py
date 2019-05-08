@@ -48,7 +48,7 @@ def temporal_lineplot(x_data, y_data, x_label="", y_label="", title=""):
     line_num = 0
 
     for user in x_data:
-        ax.plot(t, y_data[line_num], lw = 2, color = colors[line_num], alpha = 0.8, label=user)
+        ax.plot(t, y_data[line_num], lw = 2, color = colors[line_num%10], alpha = 0.8, label=user)
         # ax.text(23, y_data[line_num][-1], user, horizontalalignment='left', size='small', color=colors[line_num])
         line_num += 1
 

@@ -44,7 +44,8 @@ def filter(source_data, name_str):
     do_write(all_record, working_folder+'cleaned_data/expanded_day_1_%s.csv' % name_str)
 
     # return the min & max of the byt
-    return all_record['byt'].min(axis = 0), all_record['byt'].max(axis = 0) 
+    # return len(all_record.index), all_record['byt'].min(axis = 0), all_record['byt'].max(axis = 0) 
+    return all_record['byt'].tolist() 
 
 def split_file(source_data, name_str):
     all_record = pd.read_csv(source_data)
@@ -63,32 +64,59 @@ def split_file(source_data, name_str):
         
         # do_write(chunk, source_data+hour_str+'/'+name_str)
 
-def decide_bin_scale(config, overall_min, overall_max):
-    log_overall_min = math.log(overall_min)
-    log_overall_max = math.log(overall_max)
-    print('logmin and logmax', log_overall_min, log_overall_max)
-    floor = math.floor(log_overall_min)
-    ceil = math.ceil(log_overall_max)
-    diff = ceil - floor
-    bin_number = math.floor(math.sqrt(ceil-floor))
-    while (bin_number <= diff):
-        if diff % bin_number == 0:
-            break
-        bin_number += 1
-    if bin_number == diff:
-        print("Warning! Need human defined bin number.")
-        return
+from scipy import stats
+def freedman_diaconis(data):
+    data = np.asarray(data, dtype=np.float_)
+    IQR  = stats.iqr(data, rng=(25, 75), scale="raw", nan_policy="omit")
+    N    = data.size
+    bw   = (2 * IQR) / np.power(N, 1/3)
+
+    datmin, datmax = data.min(), data.max()
+    datrng = datmax - datmin
+    bn = int((datrng / bw) + 1)
+    return bw, bn, datmin, datmax
+
+# def decide_bin_scale(config, data_points_num, overall_min, overall_max):
+def decide_bin_scale(config, data_array):
+    data_array = np.log(data_array)
+    # log_overall_min = math.log(overall_min)
+    # log_overall_max = math.log(overall_max)
+    # print('logmin and logmax', log_overall_min, log_overall_max)
+    # floor = math.floor(log_overall_min)
+    # ceil = math.ceil(log_overall_max)
+    # diff = ceil - floor
+    # bin_width, bins = astropy.stats.freedman_bin_width(data_array, True)
+    bin_width, bin_number, minn, maxn = freedman_diaconis(data_array)
+    # bin_number = int(math.sqrt(data_points_num))
+    
+    # bin_number = math.floor(math.sqrt(ceil-floor))
+    # while (bin_number <= diff):
+    #     if diff % bin_number == 0:
+    #         break
+    #     bin_number += 1
+    # if bin_number == diff:
+    #     print("Warning! Need human defined bin number.")
+    #     return
+    # bin_size = diff / bin_number
+    # print('bin_number and bin_size', bin_number, bin_size)
+    # bins = []
+    # while floor <= ceil:
+    #     bins.append(str(floor))
+    #     floor += bin_size
+
+    print('bin_size', bin_width, 'num', bin_number, 'min', minn, 'max', maxn)
     bins = []
-    bin_size = int(diff / bin_number)
-    print('bin_number and bin_size', bin_number, bin_size)
-    while floor <= ceil:
+    floor = minn
+    ceil = maxn
+    while floor < (ceil + bin_width):
         bins.append(str(floor))
-        floor += bin_size
+        floor += bin_width
+    
     print('generated bins:', bins)
     config['DEFAULT']['bins'] = ','.join(bins)
     with open('./../config.ini', 'w') as configfile:
         config.write(configfile)
-    pass
+
 
 if __name__ == "__main__":
     config = configparser.ConfigParser()
@@ -99,27 +127,35 @@ if __name__ == "__main__":
         print('no instruction input.')
         sys.exit()
     
-    if '-f' in sys.argv:
+    overall_min = 0x7f7f7f7f
+    overall_max = 0
+    data_points = []
+    if '-f' in sys.argv or '-fw' in sys.argv:
         print('reach filter, to generate the expanded_csv files')
-        overall_min = 0x7f7f7f7f
-        overall_max = 0
+        
         print(overall_max, overall_min)
         for ip_str in user_list:
             source_data = working_folder + 'raw_data/day_1_%s.csv' % ip_str
-            min_value, max_value = filter(source_data, ip_str)
-            overall_min = min(overall_min, min_value)
-            overall_max = max(overall_max, max_value)
-            print(ip_str, 'min:', min_value, ', max:', max_value)
-        print(overall_min, overall_max)
-        # update the config_ini for the bin size issue
-        decide_bin_scale(config, overall_min, overall_max)
-    
-    if '-split_t' in sys.argv:
-        print('reach split_t')
-        target_dir = '../data/baseline1&2/gen_data/'
-        target_name_pattern = ''
+            # conduct filter func for expanded csv
+            one_data = filter(source_data, ip_str)
 
-        for ip_str in user_list:
-            source_data = 'data/baseline1&2/raw_data/'
-            split_file(source_data, 'day_1_%s.csv' % ip_str)
+            # data_points_num += row_num
+            data_points = data_points + one_data
+            # print(ip_str, 'row_num', row_num , 'min:', min_value, ', max:', max_value)
+        # print('allinall', data_points_num, overall_min, overall_max)
+
+    print(len(data_points))
+    # update the config_ini for the bin size issue
+    if '-w' in sys.argv or '-fw' in sys.argv:
+        # decide_bin_scale(config, data_points_num, overall_min, overall_max)
+        decide_bin_scale(config, data_points)
+    
+    # if '-split_t' in sys.argv:
+    #     print('reach split_t')
+    #     target_dir = '../data/baseline1&2/gen_data/'
+    #     target_name_pattern = ''
+
+    #     for ip_str in user_list:
+    #         source_data = 'data/baseline1&2/raw_data/'
+    #         split_file(source_data, 'day_1_%s.csv' % ip_str)
         

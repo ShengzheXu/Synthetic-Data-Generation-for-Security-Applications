@@ -47,7 +47,7 @@ def extract(theUserIP):
         # chunk = chunk.sample(n=int(len(chunk.index)/10),random_state=131,axis=0)
         if isinstance(theUserIP, list):
             for one_ip in theUserIP:
-                chunk2 = chunk[chunk['sa'] == one_ip]
+                chunk2 = chunk[(chunk['sa'] == one_ip) | (chunk['da'] == one_ip)]
                 if gen_flag:
                     print(len(chunk2.index), "to write for", one_ip)
                     do_write(chunk2, one_ip)
@@ -68,14 +68,20 @@ def sample_choice(filename, num_of_row):
     do_write(all_record, 'sampled_10IPs')
 
 occur_dict = {}
-def cal_stats(df, target_colname):
-    for r in zip(df[target_colname]):
-        if r[0] in occur_dict:
-            occur_dict[r[0]] += 1
-        else:
-            occur_dict[r[0]] = 1
+def cal_stats(df):
+    for r in zip(df['sa'], df['da']):
+        if r[0].startswith(internal_ip):
+            if r[0] in occur_dict:
+                occur_dict[r[0]] += 1
+            else:
+                occur_dict[r[0]] = 1
+        if r[1].startswith(internal_ip):
+            if r[1] in occur_dict:
+                occur_dict[r[1]] += 1
+            else:
+                occur_dict[r[1]] = 1
 
-def analyze(theUserIP, target_colname, num_of_selected):
+def analyze():
     starttime = datetime.now()
     chunksize = 10 ** 6
     chunkNum = 0
@@ -85,19 +91,18 @@ def analyze(theUserIP, target_colname, num_of_selected):
         chunk = chunk[chunk['te'].str.startswith(theDate)]
         if (len(chunk.index) == 0):
             break
-        chunk = chunk[chunk['sa'].str.startswith(theUserIP) | chunk['da'].str.startswith(theUserIP)]
-        # chunk = chunk[chunk['sa'].str.startswith(theUserIP)]
+        chunk = chunk[chunk['sa'].str.startswith(internal_ip) | chunk['da'].str.startswith(internal_ip)]
         chunkNum += 1
-        cal_stats(chunk, target_colname)
+        cal_stats(chunk)
         print("blockNum", chunkNum, "with", len(chunk.index))
         del chunk
         gc.collect()
 
     most_occure = sorted( ((v,k) for k,v in occur_dict.items()), reverse=True)
-    print("most "+ target_colname, most_occure[:num_of_selected])
+    print("most bi-direction traffic users", most_occure[:20])
 
     with open('data_stats.csv', 'w') as f:
-        outstring = 'occurrence,ip\n'
+        outstring = 'number_of_rows,ip\n'
         for case in most_occure:
             outstring += str(case[0]) + ',' + case[1] + '\n'
         
@@ -106,22 +111,38 @@ def analyze(theUserIP, target_colname, num_of_selected):
     endtime = datetime.now()
     print('process time', (endtime-starttime).seconds)
 
-def plot_refer(stats_file):
+def plot_refer(stats_file, set_config_user=False):
     a = pd.read_csv(stats_file)
     a = a[a['ip'].str.startswith(internal_ip)]
-    a.to_csv('internal_only_'+stats_file, header='column_names', index=False)
     sys.path.append('../')
     print("current sys path:", sys.path)
     from utils.plot_utils import plot_source_distribution
 
-    num_of_connection = a['occurrence'].values.tolist()
+    num_of_connection = a['number_of_rows'].values.tolist()
     plot_source_distribution(np.log(num_of_connection))
 
     user_addresses = a['ip'].values.tolist()
     print(len(num_of_connection), sum(num_of_connection))
+    q_1 = int(len(num_of_connection)/4)
     median_index = int(len(num_of_connection)/2)
-    for i in range(median_index-5, median_index+5):
+    q_3 = int(len(num_of_connection)*3/4)
+
+    from random import sample
+    selected_users_index = sample(range(q_1, q_3), 100)
+    print(q_1, q_3, selected_users_index)
+    
+    for i in selected_users_index:
         print(user_addresses[i], num_of_connection[i])
+    
+    selected_users = [str(user_addresses[x]) for x in selected_users_index]
+    if set_config_user is True:
+        config = configparser.ConfigParser()
+        config.read('./../config.ini')
+        config['DEFAULT']['userlist'] = ','.join(selected_users)
+        config['GENERATE']['gen_users'] = ','.join(selected_users)
+        
+        with open('./../config.ini', 'w') as configfile:
+            config.write(configfile)
 
 # call this function with python3 UGR16.py [arg], where [arg] is '-p' or '-e' (for probe and extract seperately).
 if __name__ == "__main__":
@@ -133,23 +154,18 @@ if __name__ == "__main__":
     
     if '-a' in sys.argv:
         print('reach analyze')
-        analyze('42.219.', 'sa', 20)
+        analyze()
 
-    if '-p' in sys.argv:
+    if '-p' in sys.argv or '-pw' in sys.argv:
         print('reach plot_stats')
-        stats_file = 'data_stats_3traffic.csv'
-        plot_refer(stats_file)
+        stats_file = 'bidirection_data_stats_3traffic.csv'
+        if '-pw' in sys.argv:
+            plot_refer(stats_file, True)
+        else:
+            plot_refer(stats_file)
     
     if '-e' in sys.argv:
         print('reach extract')
-
-        # ten_ips = ['42.219.153.7', '42.219.153.89', '42.219.155.56', '42.219.155.26', '42.219.159.194',
-        #         '42.219.152.249', '42.219.159.82', '42.219.159.92', '42.219.159.94', '42.219.158.226']
-
-        # ten_ips = ['42.219.159.118', '42.219.159.76', '42.219.159.195', '42.219.159.171', '42.219.159.199',
-        #         '42.219.170.246', '42.219.159.186', '42.219.159.182', '42.219.159.179', '42.219.159.221']
-
-        # ten_ips = ['42.219.159.170','42.219.159.95']
 
         config = configparser.ConfigParser()
         config.read('./../config.ini')

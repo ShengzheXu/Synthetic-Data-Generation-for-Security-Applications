@@ -28,3 +28,10 @@ ten_ip,baseline1 ==> time:342.28333333333336mins
 10users,1days,baseline2 ==> time:70.63333333333334mins
 10users,10days,baseline1 ==> time:4.7mins
 10users,10days,baseline2 ==> time:6.083333333333333mins
+10users,10days,baseline1 ==> time:4.083333333333333mins
+10users,10days,baseline2 ==> time:5.866666666666666mins
+10users,10days,baseline1 ==> time:4.083333333333333mins
+10users,10days,baseline2 ==> time:6.383333333333334mins
+100users,10days,baseline1 ==> time:1.9333333333333333mins
+100users,10days,baseline1 ==> time:1.9166666666666667mins
+100users,10days,baseline2 ==> time:7.883333333333334mins
