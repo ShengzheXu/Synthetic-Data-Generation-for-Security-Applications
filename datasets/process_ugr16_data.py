@@ -27,7 +27,7 @@ def date_to_T(date_time_str):
         hh = hh[-1]
     return hh
 
-def filter(source_data, name_str):
+def filter(source_data, name_str, write_clean=True):
     all_record = pd.read_csv(source_data)
     # print(all_record.tail())
 
@@ -41,7 +41,8 @@ def filter(source_data, name_str):
     
     # print(all_record.head())
 
-    do_write(all_record, working_folder+'cleaned_data/expanded_day_1_%s.csv' % name_str)
+    if write_clean is True:
+        do_write(all_record, working_folder+'cleaned_data/expanded_day_1_%s.csv' % name_str)
 
     # return the min & max of the byt
     # return len(all_record.index), all_record['byt'].min(axis = 0), all_record['byt'].max(axis = 0) 
@@ -130,14 +131,17 @@ if __name__ == "__main__":
     overall_min = 0x7f7f7f7f
     overall_max = 0
     data_points = []
-    if '-f' in sys.argv or '-fw' in sys.argv:
+    if '-f' in sys.argv or '-fw' in sys.argv or '-w' in sys.argv:
         print('reach filter, to generate the expanded_csv files')
         
         print(overall_max, overall_min)
         for ip_str in user_list:
             source_data = working_folder + 'raw_data/day_1_%s.csv' % ip_str
             # conduct filter func for expanded csv
-            one_data = filter(source_data, ip_str)
+            if '-w' in sys.argv:
+                one_data = filter(source_data, ip_str, write_clean=False)
+            else:
+                one_data = filter(source_data, ip_str, write_clean=True)
 
             # data_points_num += row_num
             data_points = data_points + one_data

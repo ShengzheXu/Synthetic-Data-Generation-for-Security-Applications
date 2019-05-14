@@ -9,14 +9,22 @@ If downloaded data in this way, you can go to step 4 directly.
 
 ## how to do a quick generation?
 
-    Step1. Download the UGR16 data from the website, like april.week3.csv.uniqblacklistremoved
-    Step2. Analysis the occurence of the data and extract raw data of some users. 
-        `python UGR16.py`  
-    Step3. Clean and make up the raw data and generate the cleaned data
-        `python split_timestamp.py'
-    Step4. Modify the config file or later use the command line to override
+    Step1. Data Preparation
+        Download the UGR16 data from the website, like april.week3.csv.uniqblacklistremoved. Then write it's path to the config.ini
+
+        Delete the data under data/ folder for clean purpose.
+
+    Step2. Analysis the occurence of the data and extract raw data of some users. The output of this step will be the data/raw_data/*.csv
+        cd dataset/
+        `python analyze_and_extract_ugr16.py -e`
+    
+    Step3. Clean and make up the raw data and generate the cleaned data. Then decide the bin size.
+        `python process_ugr16_data.py -fw'
+
+    Step4. Modify the config file to choose the baseline or later use the command line to override
         `python run_exp.py`
-    Step5. Use KL to validate the generated data.
+
+    Step5. Modify the config file to choose the validation model and Use KL to validate the generated data.
         `python validation.py'
 
 ## hyperparameters setting

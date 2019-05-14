@@ -161,7 +161,7 @@ if __name__ == "__main__":
     if gen_multi_user == 'True':
         print('generating multi users')
         for i in range(len(gen_users)):
-            saving_str = "gen_data/multi_users/%s_%sdays_%s.csv" % (baseline_choice, day_number, gen_users[i])
+            saving_str = "gen_data/%s_%sdays_%susers.csv" % (baseline_choice, day_number, len(gen_users))
             do_one()
     else:
         print('generating single user')

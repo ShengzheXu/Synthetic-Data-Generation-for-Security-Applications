@@ -81,8 +81,8 @@ def vali_hourly(raw_ip_str, gen_ip_str, bins):
         if T<10:
             hour_str = hour_str[:-1] + str(T)[0]
         else:
-            hour_str = hour_str[:-2] + str(T)[:1]
-        
+            hour_str = str(T)
+        # print('checking:', T, hour_str)
         raw_chunk = rawdata[rawdata['te'].str.contains(' '+hour_str+':')]
         gen_chunk = gendata[gendata['te'].str.contains(' '+hour_str+':')]
         KL = real_vali_KL(raw_chunk, gen_chunk, bins)
@@ -160,4 +160,4 @@ if __name__ == "__main__":
                     y_data[h].append(y_data_i[h])
             print(len(y_data), len(y_data[0]))
         
-            boxplot(x_data, y_data, title='KL(10 raw ips || %s)' % ip2)
+            boxplot(x_data, y_data, title='KL(100 raw ips || %s)' % ip2)

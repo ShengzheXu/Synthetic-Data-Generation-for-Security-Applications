@@ -56,7 +56,7 @@ def temporal_lineplot(x_data, y_data, x_label="", y_label="", title=""):
     ax.set_title(title)
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
-    ax.legend(loc=0, ncol=2)
+    # ax.legend(loc=0, ncol=2)
     plt.show()
 
 # def plot_source_distribution(value_list, fig_name='data_dist', range_=None, bins_=100,

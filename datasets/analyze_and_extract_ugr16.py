@@ -144,7 +144,7 @@ def plot_refer(stats_file, set_config_user=False):
         with open('./../config.ini', 'w') as configfile:
             config.write(configfile)
 
-# call this function with python3 UGR16.py [arg], where [arg] is '-p' or '-e' (for probe and extract seperately).
+# call this function with python3 UGR16.py [arg], where [arg] is '-a', '-p' or '-e' (for probe and extract seperately).
 if __name__ == "__main__":
     print(len(sys.argv))
     print(sys.argv)
@@ -152,6 +152,10 @@ if __name__ == "__main__":
         print('no instruction input.')
         sys.exit()
     
+    config = configparser.ConfigParser()
+    config.read('./../config.ini')
+    normal_datafile = config['DEFAULT']['huge_data_path']
+
     if '-a' in sys.argv:
         print('reach analyze')
         analyze()
