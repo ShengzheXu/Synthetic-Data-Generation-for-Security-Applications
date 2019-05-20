@@ -36,19 +36,21 @@ if __name__ == "__main__":
 
     if '-spe' in sys.argv:
         testing_name = input("Input the testing file name:")
-        
-        x_data = [testing_name]
+        testing_name = 'day_1_42.219.144.193'
+        x_data = []
         y_data = []
         
-        y_data_i = []
         source_data = './data/gen_data/%s.csv' % testing_name
+        source_data = './data/raw_data/%s.csv' % testing_name
         all_record = pd.read_csv(source_data)
 
-        for t_hour in range(24):
+        for t_hour in range(24):   
+            x_data.append(str(t_hour))
+            y_data_i = []
             str_hour = str(t_hour) if t_hour > 9 else '0'+ str(t_hour)
             chunk = all_record[all_record['te'].str.contains(' '+str_hour+':')]
-            y_data_i.append(len(chunk.index))
+            y_data_i = chunk['byt'].values.tolist()
+            y_data.append(y_data_i)
         
-        y_data.append(y_data_i)
-        
-        plot_utils.temporal_lineplot(x_data, y_data)
+        # plot_utils.temporal_lineplot(x_data, y_data)
+        plot_utils.boxplot(x_data, y_data, title='hour distribution of '+testing_name)

@@ -11,6 +11,7 @@ class baseline(object):
     def __init__(self, sip, start_date, time_delta_train, sip_train, dip_train):
         self.te_adj = False
 
+        self.for_whom = None
         self.sip = sip
         self.teDelta_model = mixture.GaussianMixture(n_components=7, covariance_type='full').fit(time_delta_train)
         start_date_time_str = start_date
@@ -57,9 +58,9 @@ class baseline(object):
         import random
         rolling_point = random.random()
         if rolling_point < self.outgoing_prob:
-            return self.sip[0], self.dip_model()
+            return self.for_whom, self.dip_model()
         else:
-            return self.sip_model(), self.sip[0]
+            return self.sip_model(), self.for_whom
     
     def save_params(self, gmm_model, params_dir=None):
         if params_dir is None:
@@ -79,6 +80,9 @@ class baseline(object):
         gmm_model.means_ = mu          # mixture means (n_components, 2) 
         gmm_model.covariances_ = sigma  # mixture cov (n_components, 2, 2)
         print("<=====Model Parameters Loaded")
+    
+    def prepare_gen(self, for_whom):
+        self.for_whom = for_whom
     
     def adjusted_time_delta_for_high_throughput(self, te_delta):
         adj_te_delta = int(te_delta[0]) if int(te_delta[0])>=0 else 0

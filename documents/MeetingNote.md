@@ -1,3 +1,11 @@
+# May 18&19 plan
+
+1. generate 100 users 1 day, Done
+
+2. draw 100 raw user hour distribution
+
+3. split baseline2 training and testing
+
 # May 10th meeting
 
 Observation: most of the traffic are incoming traffic, I mean the user_i is on the destination_ip position.

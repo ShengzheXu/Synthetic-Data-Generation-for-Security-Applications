@@ -69,7 +69,10 @@ def flush(gen_data):
             writer.writerow(fieldnames)
         writer.writerows(gen_data)
 
-def do_one():
+def train_model():
+    pass
+
+def gen_one(for_whom):
     starttime = datetime.now()
     final_byt_log_train = np.reshape(np.array([]), (-1, 1))
     final_time_delta_train = np.reshape(np.array([]), (-1, 1))
@@ -108,8 +111,10 @@ def do_one():
     now_t = 0
     last_b = -1
     cnt = 0
-    current_date = 11
-    start_date = -1
+    
+    start_date_obj = datetime.strptime(original_date, '%Y-%m-%d %H:%M:%S')
+    model1.prepare_gen(for_whom)
+
     while True:
         dep_info = [now_t, last_b] if baseline_choice == 'baseline2' else []
         gen_te, gen_sip, gen_dip, gen_byt, gen_te_delta = model1.generate_one(dep_info)
@@ -119,17 +124,14 @@ def do_one():
         cnt += 1
         print(cnt, gen_data[-1])
 
-        if start_date == -1:
-            start_date = int(gen_te[8:10])
-        if (int(gen_te[8:10]) - start_date) >= day_number:
-            flush(gen_data[:-1])
-            break
-
-        if int(gen_te[8:10]) > current_date:
-            current_date += 1
+        gen_date_obj = datetime.strptime(gen_te, '%Y-%m-%d %H:%M:%S')
+        date_spray = (gen_date_obj-start_date_obj).days
+        # print('============', date_spray, type(date_spray), day_number)
+        if date_spray >= day_number:
             if real_gen == 'yes':
                 flush(gen_data[:-1])
                 gen_data = [gen_data[-1]]
+            break
     
     endtime = datetime.now()
     with open("exp_record.txt", "a") as myfile:
@@ -156,15 +158,17 @@ if __name__ == "__main__":
     original_date = config['GENERATE']['original_date']
     day_number = int(config['GENERATE']['gen_daynumber'])
     
+    # train the model
     
-    # run the experiment
+
+    # generate the data
     if gen_multi_user == 'True':
         print('generating multi users')
         for i in range(len(gen_users)):
-            saving_str = "gen_data/%s_%sdays_%susers.csv" % (baseline_choice, day_number, len(gen_users))
-            do_one()
+            saving_str = "gen_data/%s_%sdays_%s.csv" % (baseline_choice, day_number, len(gen_users))
+            gen_one(gen_users[i])
     else:
         print('generating single user')
         saving_str = "gen_data/%s_%sdays.csv" % (baseline_choice, day_number)
-        do_one()
+        gen_one(gen_users)
     

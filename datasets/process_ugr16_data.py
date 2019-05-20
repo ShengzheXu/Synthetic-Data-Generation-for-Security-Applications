@@ -141,6 +141,7 @@ if __name__ == "__main__":
             if '-w' in sys.argv:
                 one_data = filter(source_data, ip_str, write_clean=False)
             else:
+                print('write to cleaned files')
                 one_data = filter(source_data, ip_str, write_clean=True)
 
             # data_points_num += row_num
