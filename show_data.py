@@ -1,6 +1,7 @@
 import sys
 import configparser
 import pandas as pd
+import glob
 import utils.plot_utils as plot_utils
 
 if __name__ == "__main__":
@@ -35,14 +36,19 @@ if __name__ == "__main__":
         plot_utils.temporal_lineplot(x_data, y_data)
 
     if '-spe' in sys.argv:
-        testing_name = input("Input the testing file name:")
-        testing_name = 'day_1_42.219.144.193'
+        # testing_name = input("Input the testing file name:")
+        # testing_name = 'day_1_42.219.144.193'
+        # source_data = './data/gen_data/%s.csv' % testing_name
+        # source_data = './data/raw_data/%s.csv' % testing_name
+        # all_record = pd.read_csv(source_data)
+
+        source_folder = './data/raw_data/'
+        source_folder = './data/gen_data/baseline2_1days_folder/'
+
+        all_record = pd.concat([pd.read_csv(f) for f in glob.glob(source_folder+'*.csv')], ignore_index = True)
+
         x_data = []
         y_data = []
-        
-        source_data = './data/gen_data/%s.csv' % testing_name
-        source_data = './data/raw_data/%s.csv' % testing_name
-        all_record = pd.read_csv(source_data)
 
         for t_hour in range(24):   
             x_data.append(str(t_hour))
@@ -53,4 +59,6 @@ if __name__ == "__main__":
             y_data.append(y_data_i)
         
         # plot_utils.temporal_lineplot(x_data, y_data)
-        plot_utils.boxplot(x_data, y_data, title='hour distribution of '+testing_name)
+        plot_utils.boxplot(x_data, y_data, x_label='hour', y_label='byt', title='hour distribution of all '+source_folder)
+
+    

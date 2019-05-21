@@ -8,6 +8,8 @@ import pandas as pd
 import argparse
 import configparser
 import gc
+import sys
+import os
 
 np.random.seed(131)
 user_list = []
@@ -44,12 +46,12 @@ def data_prepare(ip_str, sample_flag):
 
 def model_prepare(original_date, sip, byt_log_train, time_delta_train, sip_train, dip_train, byt1_log_train=None, teT_df_col=None):
     if baseline_choice == 'baseline1':
-        meta_model = baseline1(original_date, sip, byt_log_train, time_delta_train, sip_train, dip_train)
-        # meta_model.save_params(meta_model.byt_model)
-        # meta_model.load_params(meta_model.byt_model)
+        meta_model = baseline1()
+        meta_model.fit(original_date, sip, byt_log_train, time_delta_train, sip_train, dip_train)
         return meta_model
     elif baseline_choice == 'baseline2':
-        meta_model = baseline2(original_date, sip, byt_log_train, time_delta_train, sip_train, dip_train, byt1_log_train, teT_df_col, bins)
+        meta_model = baseline2()
+        meta_model.fit(original_date, sip, byt_log_train, time_delta_train, sip_train, dip_train, byt1_log_train, teT_df_col, bins)
         return meta_model
     else:
         pass
@@ -69,11 +71,7 @@ def flush(gen_data):
             writer.writerow(fieldnames)
         writer.writerows(gen_data)
 
-def train_model():
-    pass
-
-def gen_one(for_whom):
-    starttime = datetime.now()
+def train_model(baseline_choice):
     final_byt_log_train = np.reshape(np.array([]), (-1, 1))
     final_time_delta_train = np.reshape(np.array([]), (-1, 1))
     final_sip = []
@@ -105,7 +103,11 @@ def gen_one(for_whom):
     print(final_teT_df_col.shape)
     model1 = model_prepare(original_date, final_sip, final_byt_log_train, final_time_delta_train, final_sip_train, final_dip_train, final_byt1_log_train, final_teT_df_col)
     print(model1.likelihood)
-    # return
+    return model1
+
+def gen_one(model1, for_whom):
+    
+    starttime = datetime.now()
     
     gen_data = []
     now_t = 0
@@ -113,7 +115,7 @@ def gen_one(for_whom):
     cnt = 0
     
     start_date_obj = datetime.strptime(original_date, '%Y-%m-%d %H:%M:%S')
-    model1.prepare_gen(for_whom)
+    model1.reset_gen(for_whom)
 
     while True:
         dep_info = [now_t, last_b] if baseline_choice == 'baseline2' else []
@@ -122,7 +124,7 @@ def gen_one(for_whom):
         now_t = int(str(gen_te)[11:13])
         last_b = gen_byt
         cnt += 1
-        print(cnt, gen_data[-1])
+        print(cnt, for_whom, gen_data[-1])
 
         gen_date_obj = datetime.strptime(gen_te, '%Y-%m-%d %H:%M:%S')
         date_spray = (gen_date_obj-start_date_obj).days
@@ -144,7 +146,7 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read('config.ini')
     # override the config with the command line
-    recieve_cmd_config(config['DEFAULT'])
+    # recieve_cmd_config(config['DEFAULT'])
     
     user_list = config['DEFAULT']['userlist'].split(',')
     baseline_choice = config['DEFAULT']['baseline']
@@ -158,17 +160,39 @@ if __name__ == "__main__":
     original_date = config['GENERATE']['original_date']
     day_number = int(config['GENERATE']['gen_daynumber'])
     
-    # train the model
+    if len(sys.argv) < 2:
+        print('no instruction input.')
+        sys.exit()
     
+    model1 = None
+    if '-train' in sys.argv:
+        # train the model
+        model1 = train_model(baseline_choice)
+        model1.save_the_model()
+    
+    if '-gen' in sys.argv:
+        # generate the data
+        if model1 is None:
+            if baseline_choice == 'baseline1':
+                model1 = baseline1()
+                model1.load_the_model()
+            elif baseline_choice == 'baseline2':
+                model1 = baseline2()
+                model1.load_the_model()
+            else:
+                pass
 
-    # generate the data
-    if gen_multi_user == 'True':
-        print('generating multi users')
-        for i in range(len(gen_users)):
-            saving_str = "gen_data/%s_%sdays_%s.csv" % (baseline_choice, day_number, len(gen_users))
-            gen_one(gen_users[i])
-    else:
-        print('generating single user')
-        saving_str = "gen_data/%s_%sdays.csv" % (baseline_choice, day_number)
-        gen_one(gen_users)
+        if gen_multi_user == 'True':
+            print('generating multi users')
+            storing_folder = '%s_%sdays_folder' % (baseline_choice, day_number)
+            if not os.path.exists('./data/gen_data/%s/' % storing_folder):
+                os.makedirs('./data/gen_data/%s/' % storing_folder)
+            print(len(gen_users), gen_users[0])
+            for i in range(len(gen_users)):
+                saving_str = "gen_data/%s/%s_%sdays_%s.csv" % (storing_folder, baseline_choice, day_number, gen_users[i])
+                gen_one(model1, gen_users[i])
+        else:
+            print('generating single user')
+            saving_str = "gen_data/%s_%sdays.csv" % (baseline_choice, day_number)
+            gen_one(model1, gen_users)
     

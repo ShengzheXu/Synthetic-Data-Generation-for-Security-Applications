@@ -5,8 +5,10 @@ from sklearn.metrics.cluster import normalized_mutual_info_score
 import configparser
 from utils.config_utils import recieve_cmd_config
 from utils.plot_utils import boxplot
+from utils.plot_utils import temporal_lineplot
 from models.baselines import baseline1
 from utils.distribution_utils import get_distribution_with_laplace_smoothing
+import glob
 
 def KLc(p, q):
     p = np.asarray(p, dtype=np.float)
@@ -90,7 +92,30 @@ def vali_hourly(raw_ip_str, gen_ip_str, bins):
         rtn.append(KL)
 
     return rtn
-        
+
+def vali_as_a_whole(bins):
+    source_folder = './data/raw_data/'
+    target1_folder = './data/gen_data/baseline1_1days_folder/'
+    target2_folder = './data/gen_data/baseline2_1days_folder/'
+
+    source_record = pd.concat([pd.read_csv(f) for f in glob.glob(source_folder+'*.csv')], ignore_index = True)
+    target1_record = pd.concat([pd.read_csv(f) for f in glob.glob(target1_folder+'*.csv')], ignore_index = True)
+    target2_record = pd.concat([pd.read_csv(f) for f in glob.glob(target2_folder+'*.csv')], ignore_index = True)
+
+    x_data = ['KL(raw|baseline1)', 'KL(raw|baseline2)', 'KL(baselin1|baseline2)']
+    y_data = [[], [], []]
+
+    for t_hour in range(24):   
+        str_hour = str(t_hour) if t_hour > 9 else '0'+ str(t_hour)
+        source_chunk = source_record[source_record['te'].str.contains(' '+str_hour+':')]
+        target1_chunk = target1_record[target1_record['te'].str.contains(' '+str_hour+':')]
+        target2_chunk = target2_record[target2_record['te'].str.contains(' '+str_hour+':')]
+
+        y_data[0].append(real_vali_KL(source_chunk, target1_chunk, bins))
+        y_data[1].append(real_vali_KL(source_chunk, target2_chunk, bins))
+        y_data[2].append(real_vali_KL(target1_chunk, target2_chunk, bins))
+    
+    temporal_lineplot(x_data, y_data, x_label='hour', y_label='KL divergency', title='3 pairs KL divergency compare')
 
 
 if __name__ == "__main__":
@@ -161,3 +186,6 @@ if __name__ == "__main__":
             print(len(y_data), len(y_data[0]))
         
             boxplot(x_data, y_data, title='KL(100 raw ips || %s)' % ip2)
+
+    if config['VALIDATE']['hour_whole'] == 'True':
+        vali_as_a_whole(bins)
