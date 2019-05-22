@@ -183,10 +183,21 @@ class baseline2(baseline):
         self.byt_model = mixture.GaussianMixture(n_components=7, covariance_type='full').fit(byt_log_train)
         self.learnt_p_B_gv_T_B1 = self.build_bayesian_dep(teT_col, np.ravel(byt_log_train), np.ravel(byt1_log_train), self.byt_model)
 
-        for id in range(len(byt_log_train)):
+        self.cal_likelihood(byt_log_train, byt1_log_train, teT_col)
+
+    def cal_likelihood(self, given_data_byt, given_data_byt_1, given_data_T):
+        # learnt_p_B_gv_T_B1[t][interval_1][interval]
+        add_likeli = 0
+        for id in range(len(given_data_byt)):
             # print(id, len(byt_log_train), len(byt_log_train[id]))
-            self.find_bin(byt_log_train[id][0])
-        self.likelihood = 0
+            id_byt = self.find_bin(given_data_byt[id][0])
+            id_byt_1 = self.find_bin(given_data_byt_1[id][0])
+            id_t = given_data_T[id][0]
+            add_likeli += np.log(self.learnt_p_B_gv_T_B1[id_t][id_byt_1][id_byt])
+        
+        log_likeli = add_likeli/len(given_data_byt)
+        print('likelihood:', add_likeli, add_likeli/len(given_data_byt))
+        self.likelihood = log_likeli
     
     def generate_one(self, dep_info):
         gen_te, gen_sip, gen_dip, gen_te_delta = self.generate_sup_info()
@@ -253,6 +264,22 @@ class baseline2(baseline):
                 for interval in bins_name:
                     learnt_p_B_gv_T_B1[t][interval_1][interval] = p_T_B[t][interval] * p_B[interval] * p_B1_B[interval_1][interval]
 
+        # do a laplacian smoothing for the learnt table
+        from utils.distribution_utils import get_distribution_with_laplace_smoothing
+        for t in range(24):
+            for interval_1 in bins_name:
+                the_map_to_list = []
+                # extract first
+                for interval in bins_name:
+                    the_map_to_list.append(learnt_p_B_gv_T_B1[t][interval_1][interval])
+                
+                smoothed_list = get_distribution_with_laplace_smoothing(the_map_to_list)
+                # recover then
+                ith = 0
+                for interval in bins_name:
+                    learnt_p_B_gv_T_B1[t][interval_1][interval] = smoothed_list[ith]
+                    ith += 1
+                
         return learnt_p_B_gv_T_B1
 
     def select_bayesian_output(self, t, b_1):

@@ -1,3 +1,12 @@
+# May 22 plan
+1. implement the "pixelCNN for our case"
+
+# May 21 plan: Done
+
+1. how pixelcnn++ calculate the log-likelihood? 1. For d in test_data; 2. feed d to session.run, and get loss(probability); 3. mean of all loss.
+
+2. Then for our baseline2: 1. just for d in test_data; 2.use d(byt, byt-1, T) to check the trained table and get the log-probability. 3. mean of all pr
+
 # May 18&19 plan
 
 1. generate 100 users 1 day, Done

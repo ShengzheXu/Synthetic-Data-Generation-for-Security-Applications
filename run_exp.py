@@ -134,7 +134,7 @@ def gen_one(model1, for_whom):
                 flush(gen_data[:-1])
                 gen_data = [gen_data[-1]]
             break
-    
+
     endtime = datetime.now()
     with open("exp_record.txt", "a") as myfile:
         myfile.write(str(len(user_list)) + 'users,' + str(day_number) +'days,'+ baseline_choice
