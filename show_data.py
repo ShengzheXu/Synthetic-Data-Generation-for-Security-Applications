@@ -3,6 +3,7 @@ import configparser
 import pandas as pd
 import glob
 import utils.plot_utils as plot_utils
+import numpy as np
 
 if __name__ == "__main__":
     print(len(sys.argv))
@@ -14,26 +15,20 @@ if __name__ == "__main__":
     if '-raw' in sys.argv:
         print('reach show raw_data')
         
-        config = configparser.ConfigParser()
-        config.read('config.ini')
-        user_list = config['DEFAULT']['userlist'].split(',')
-        
-        x_data = []
-        y_data = []
-        for ip in user_list:
-            x_data.append(ip)
-            y_data_i = []
-            source_data = './data/raw_data/day_1_%s.csv' % ip
-            all_record = pd.read_csv(source_data)
+        source_folder = './data/midium100users/raw_data/'
+        # source_folder = './data/gen_data/baseline2_1days_folder/'
 
-            for t_hour in range(24):
-                str_hour = str(t_hour) if t_hour > 9 else '0'+ str(t_hour)
-                chunk = all_record[all_record['te'].str.contains(' '+str_hour+':')]
-                y_data_i.append(len(chunk.index))
-            
-            y_data.append(y_data_i)
+        all_record = pd.concat([pd.read_csv(f) for f in glob.glob(source_folder+'*.csv')], ignore_index = True)
+
+        x_data = [source_folder]
+        y_data = [[]]
+        for t_hour in range(24):   
+            y_data_i = []
+            str_hour = str(t_hour) if t_hour > 9 else '0'+ str(t_hour)
+            chunk = all_record[all_record['te'].str.contains(' '+str_hour+':')]
+            y_data[0].append(len(chunk.index))
         
-        plot_utils.temporal_lineplot(x_data, y_data)
+        plot_utils.temporal_lineplot(x_data, y_data, x_label="hour", y_label="#flow", title="#flow distribution over 100 users")
 
     if '-spe' in sys.argv:
         # testing_name = input("Input the testing file name:")
@@ -42,8 +37,8 @@ if __name__ == "__main__":
         # source_data = './data/raw_data/%s.csv' % testing_name
         # all_record = pd.read_csv(source_data)
 
-        source_folder = './data/raw_data/'
-        source_folder = './data/gen_data/baseline2_1days_folder/'
+        source_folder = './data/midium100users/raw_data/'
+        # source_folder = './data/gen_data/baseline2_1days_folder/'
 
         all_record = pd.concat([pd.read_csv(f) for f in glob.glob(source_folder+'*.csv')], ignore_index = True)
 
@@ -55,10 +50,12 @@ if __name__ == "__main__":
             y_data_i = []
             str_hour = str(t_hour) if t_hour > 9 else '0'+ str(t_hour)
             chunk = all_record[all_record['te'].str.contains(' '+str_hour+':')]
-            y_data_i = chunk['byt'].values.tolist()
+            y_data_i = np.log(chunk['byt'].values.tolist())
+            # y_data_i = chunk['byt'].values.tolist()
+            print(t_hour, len(y_data_i), y_data_i)
             y_data.append(y_data_i)
         
         # plot_utils.temporal_lineplot(x_data, y_data)
-        plot_utils.boxplot(x_data, y_data, x_label='hour', y_label='byt', title='hour distribution of all '+source_folder)
+        plot_utils.boxplot(x_data, y_data, x_label='hour', y_label='byt (log)', title='hour distribution of all '+source_folder)
 
     

@@ -1,3 +1,26 @@
+# May 24 discussion
+
+1. Timeline of AAAI & ask for twice meeting a week
+
+2. debug for baseline2 [nan issue] and GMM pr for an interval shouldn't be negative.
+    > 2.0 We use P(B|B-1, T) = P(T|B) * P(B-1|B) * P(B)
+
+    > 2.1 To calculate P(B)
+        for the GMM, it provide the score_sample() function with the PDF(probability density function, log-shape)
+        
+        Since the B here is an interval, we use "integrate" to calculate it on the PDF
+        
+        Note that: the value of a single pont on the PDF may larger than 1, but the integrate of the whole range of the PDF -> 1
+    > 2.2 Do Laplacian smoothing for the distribution of B (df.size)
+
+# May 23 plan
+
+1. analyze different users hour distribution
+
+2. prepare slides for tomorrow
+
+3. read paper and implement the "pixelCNN for our case"
+
 # May 22 plan
 1. implement the "pixelCNN for our case"
 

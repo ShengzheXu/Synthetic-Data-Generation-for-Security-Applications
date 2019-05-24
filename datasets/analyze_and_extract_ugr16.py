@@ -129,6 +129,7 @@ def plot_refer(stats_file, set_config_user=False):
 
     from random import sample
     selected_users_index = sample(range(q_1, q_3), 100)
+    selected_users_index = range(450, 551)
     print(q_1, q_3, selected_users_index)
     
     for i in selected_users_index:

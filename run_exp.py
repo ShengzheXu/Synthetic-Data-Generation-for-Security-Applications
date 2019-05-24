@@ -40,18 +40,20 @@ def data_prepare(ip_str, sample_flag):
     sip_train_pool = np.ravel(all_record['sa'].values)
     dip_train_pool = np.ravel(all_record['da'].values)
 
-    teT_df_col = all_record#['teT']
+    teT_train = np.reshape(all_record['teDelta'].values, (-1, 1))
+    df_col = all_record#['teT']
+    
 
-    return byt_log_train, time_delta_train, sip, sip_train_pool, dip_train_pool, byt1_log_train, teT_df_col
+    return byt_log_train, time_delta_train, sip, sip_train_pool, dip_train_pool, byt1_log_train, teT_train, df_col
 
-def model_prepare(original_date, sip, byt_log_train, time_delta_train, sip_train, dip_train, byt1_log_train=None, teT_df_col=None):
+def model_prepare(original_date, sip, byt_log_train, time_delta_train, sip_train, dip_train, byt1_log_train=None, final_teT_train=None, teT_df_col=None):
     if baseline_choice == 'baseline1':
         meta_model = baseline1()
         meta_model.fit(original_date, sip, byt_log_train, time_delta_train, sip_train, dip_train)
         return meta_model
     elif baseline_choice == 'baseline2':
         meta_model = baseline2()
-        meta_model.fit(original_date, sip, byt_log_train, time_delta_train, sip_train, dip_train, byt1_log_train, teT_df_col, bins)
+        meta_model.fit(original_date, sip, byt_log_train, time_delta_train, sip_train, dip_train, byt1_log_train, final_teT_train, teT_df_col, bins)
         return meta_model
     else:
         pass
@@ -78,12 +80,13 @@ def train_model(baseline_choice):
     final_sip_train = np.ravel(np.array([]))
     final_dip_train = np.ravel(np.array([]))
     final_byt1_log_train = np.reshape(np.array([]), (-1, 1))
+    final_teT_train = np.reshape(np.array([]), (-1, 1))
     final_teT_df_col = None
 
 
     for deal_str in user_list:
         print('loading:' + deal_str)
-        byt_log_train, time_delta_train, sip, sip_train_pool, dip_train_pool, byt1_log_train, teT_df_col = data_prepare(deal_str, sample_flag)
+        byt_log_train, time_delta_train, sip, sip_train_pool, dip_train_pool, byt1_log_train, teT_train, all_data_col = data_prepare(deal_str, sample_flag)
 
         final_byt_log_train = np.concatenate((final_byt_log_train, byt_log_train))
         final_time_delta_train = np.concatenate((final_time_delta_train, time_delta_train))
@@ -92,16 +95,17 @@ def train_model(baseline_choice):
         final_dip_train = np.concatenate((final_dip_train, dip_train_pool))
 
         final_byt1_log_train = np.concatenate((final_byt1_log_train, byt1_log_train))
+        final_teT_train = np.concatenate((final_teT_train, teT_train))
         if final_teT_df_col is None:
-            final_teT_df_col = teT_df_col
+            final_teT_df_col = all_data_col
         else:
-            final_teT_df_col = final_teT_df_col.append(teT_df_col) #np.concatenate((final_teT_df_col, teT_df_col)) #
+            final_teT_df_col = final_teT_df_col.append(all_data_col) #np.concatenate((final_teT_df_col, teT_df_col)) #
         # print(len(final_byt_log_train))
-        del byt_log_train, time_delta_train, sip, sip_train_pool, dip_train_pool, byt1_log_train, teT_df_col
+        del byt_log_train, time_delta_train, sip, sip_train_pool, dip_train_pool, byt1_log_train, teT_train, all_data_col
         gc.collect()
 
-    print(final_teT_df_col.shape)
-    model1 = model_prepare(original_date, final_sip, final_byt_log_train, final_time_delta_train, final_sip_train, final_dip_train, final_byt1_log_train, final_teT_df_col)
+    print("teT::", type(final_teT_df_col), final_teT_df_col.shape)
+    model1 = model_prepare(original_date, final_sip, final_byt_log_train, final_time_delta_train, final_sip_train, final_dip_train, final_byt1_log_train, final_teT_train, final_teT_df_col)
     print(model1.likelihood)
     return model1
 

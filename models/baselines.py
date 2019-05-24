@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 import operator
 import configparser
+from scipy import integrate
 
 np.random.seed(131)
 
@@ -176,14 +177,14 @@ class baseline2(baseline):
         super().__init__()
         self.byt_model = None
     
-    def fit(self, start_date, sip, byt_log_train, time_delta_train, sip_train, dip_train, byt1_log_train, teT_col, bins):
+    def fit(self, start_date, sip, byt_log_train, time_delta_train, sip_train, dip_train, byt1_log_train, teT_train, the_df, bins):
         super().fit(sip, start_date, time_delta_train, sip_train, dip_train)
         
         self.bins = bins
         self.byt_model = mixture.GaussianMixture(n_components=7, covariance_type='full').fit(byt_log_train)
-        self.learnt_p_B_gv_T_B1 = self.build_bayesian_dep(teT_col, np.ravel(byt_log_train), np.ravel(byt1_log_train), self.byt_model)
+        self.learnt_p_B_gv_T_B1 = self.build_bayesian_dep(the_df, np.ravel(byt_log_train), np.ravel(byt1_log_train), self.byt_model)
 
-        self.cal_likelihood(byt_log_train, byt1_log_train, teT_col)
+        self.cal_likelihood(byt_log_train, byt1_log_train, teT_train)
 
     def cal_likelihood(self, given_data_byt, given_data_byt_1, given_data_T):
         # learnt_p_B_gv_T_B1[t][interval_1][interval]
@@ -196,7 +197,7 @@ class baseline2(baseline):
             add_likeli += np.log(self.learnt_p_B_gv_T_B1[id_t][id_byt_1][id_byt])
         
         log_likeli = add_likeli/len(given_data_byt)
-        print('likelihood:', add_likeli, add_likeli/len(given_data_byt))
+        print('likelihood:', add_likeli, log_likeli)
         self.likelihood = log_likeli
     
     def generate_one(self, dep_info):
@@ -213,12 +214,12 @@ class baseline2(baseline):
         # print(type(self.bins))
         return pd.cut([byt_number], self.bins)[0]
 
-    def integrate(self, f, a, b, N):
-        x = np.linspace(a+(b-a)/(2*N), b-(b-a)/(2*N), N)
-        x = np.reshape(x, (-1, 1))
-        fx = f(x)
-        area = np.sum(fx)*(b-a)/N
-        return area
+    # def integrate(self, f, a, b, N):
+    #     x = np.linspace(a+(b-a)/(2*N), b-(b-a)/(2*N), N)
+    #     x = np.reshape(x, (-1, 1))
+    #     fx = f(x)
+    #     area = np.sum(fx)*(b-a)/N
+    #     return area
 
     def build_bayesian_dep(self, all_record, log_byt_col, log_byt_1_col, clf):
         print(self.bins)
@@ -244,7 +245,8 @@ class baseline2(baseline):
 
         for interval in bins_name:
             print('now working on:', interval)
-            p_B[interval] = self.integrate(clf.score_samples, interval.left, interval.right, 100)
+            gmm_pdf = lambda x: clf.score_samples(np.reshape([x], (-1, 1)))
+            p_B[interval], _est_error = integrate.quad(gmm_pdf, interval.left, interval.right)
             df = all_record[all_record['bytBins'] == interval]
 
             for t in range(24):
@@ -263,6 +265,7 @@ class baseline2(baseline):
                 learnt_p_B_gv_T_B1[t][interval_1] = {}
                 for interval in bins_name:
                     learnt_p_B_gv_T_B1[t][interval_1][interval] = p_T_B[t][interval] * p_B[interval] * p_B1_B[interval_1][interval]
+                    print(t, interval_1, interval, p_T_B[t][interval], p_B[interval], p_B1_B[interval_1][interval])
 
         # do a laplacian smoothing for the learnt table
         from utils.distribution_utils import get_distribution_with_laplace_smoothing
@@ -279,6 +282,7 @@ class baseline2(baseline):
                 for interval in bins_name:
                     learnt_p_B_gv_T_B1[t][interval_1][interval] = smoothed_list[ith]
                     ith += 1
+                    # print(t, interval_1, learnt_p_B_gv_T_B1[t][interval_1])
                 
         return learnt_p_B_gv_T_B1
 
