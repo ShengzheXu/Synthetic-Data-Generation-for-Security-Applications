@@ -40,7 +40,7 @@ def data_prepare(ip_str, sample_flag):
     sip_train_pool = np.ravel(all_record['sa'].values)
     dip_train_pool = np.ravel(all_record['da'].values)
 
-    teT_train = np.reshape(all_record['teDelta'].values, (-1, 1))
+    teT_train = np.reshape(all_record['teT'].values, (-1, 1))
     df_col = all_record#['teT']
     
 

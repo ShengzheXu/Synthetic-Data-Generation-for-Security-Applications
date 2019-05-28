@@ -187,17 +187,24 @@ class baseline2(baseline):
         self.cal_likelihood(byt_log_train, byt1_log_train, teT_train)
 
     def cal_likelihood(self, given_data_byt, given_data_byt_1, given_data_T):
-        # learnt_p_B_gv_T_B1[t][interval_1][interval]
-        add_likeli = 0
-        for id in range(len(given_data_byt)):
+        # cal marginal likelihood
+        id_byt_interval = self.find_bin(given_data_byt[0][0])
+        gmm_pdf = lambda x: self.byt_model.score_samples(np.reshape([x], (-1, 1)))
+        p_b, _est_error = integrate.quad(gmm_pdf, id_byt_interval.left, id_byt_interval.right)
+        add_likeli = p_b
+        print('marginal likelihood', add_likeli, 'from', given_data_byt[0][0], '=>', id_byt_interval)
+
+        # cal rest of the joint likelihood for learnt_p_B_gv_T_B1[t][interval_1][interval]
+        for id in range(1, len(given_data_byt)):
             # print(id, len(byt_log_train), len(byt_log_train[id]))
             id_byt = self.find_bin(given_data_byt[id][0])
             id_byt_1 = self.find_bin(given_data_byt_1[id][0])
             id_t = given_data_T[id][0]
+            print('calcing lileli, t:', id_t, given_data_byt[id][0], "=>", id_byt, ";", given_data_byt_1[id][0], "=>", id_byt_1)
             add_likeli += np.log(self.learnt_p_B_gv_T_B1[id_t][id_byt_1][id_byt])
         
         log_likeli = add_likeli/len(given_data_byt)
-        print('likelihood:', add_likeli, log_likeli)
+        print('likelihood:', add_likeli, 'average likelihood', log_likeli)
         self.likelihood = log_likeli
     
     def generate_one(self, dep_info):
@@ -237,11 +244,11 @@ class baseline2(baseline):
         p_B = {}
         p_T_B = {}
         p_B1_B = {}
-        for t in range(24):
-            p_T_B[t] = {}
-
         for interval in bins_name:
             p_B1_B[interval] = {}
+            p_T_B[interval] = {}
+        
+        from utils.distribution_utils import get_distribution_with_laplace_smoothing
 
         for interval in bins_name:
             print('now working on:', interval)
@@ -249,40 +256,51 @@ class baseline2(baseline):
             p_B[interval], _est_error = integrate.quad(gmm_pdf, interval.left, interval.right)
             df = all_record[all_record['bytBins'] == interval]
 
+            t_list = []
+            b1_list = []
             for t in range(24):
                 df_t = df[df['teT'] == t]
                 print('t', t, df_t.size, df.size)
-                p_T_B[t][interval] = df_t.size / df.size
+                # p_T_B[interval][t] = df_t.size / df.size
+                t_list.append(df_t.size)
 
             for interval_1 in bins_name:
                 df_b_1 = df[df['byt-1Bins'] == interval_1]
-                p_B1_B[interval_1][interval] = df_b_1.size / df.size
+                # p_B1_B[interval][interval_1] = df_b_1.size / df.size
+                b1_list.append(df_b_1.size)
+
+            # smooth & normalize them
+            smoothed_t_list = np.log(get_distribution_with_laplace_smoothing(t_list))
+            for t in range(24):
+                p_T_B[interval][t] = smoothed_t_list[t]
+
+            smoothed_b1_list = np.log(get_distribution_with_laplace_smoothing(b1_list))
+            ith = 0
+            for interval_1 in bins_name:
+                p_B1_B[interval][interval_1] = smoothed_b1_list[ith]
+                ith += 1
+                # print('smoothed', t, interval_1, learnt_p_B_gv_T_B1[t][interval_1])
+
         print('testing:', p_B)
         learnt_p_B_gv_T_B1 = {}
         for t in range(24):
             learnt_p_B_gv_T_B1[t] = {}
             for interval_1 in bins_name:
                 learnt_p_B_gv_T_B1[t][interval_1] = {}
-                for interval in bins_name:
-                    learnt_p_B_gv_T_B1[t][interval_1][interval] = p_T_B[t][interval] * p_B[interval] * p_B1_B[interval_1][interval]
-                    print(t, interval_1, interval, p_T_B[t][interval], p_B[interval], p_B1_B[interval_1][interval])
-
-        # do a laplacian smoothing for the learnt table
-        from utils.distribution_utils import get_distribution_with_laplace_smoothing
-        for t in range(24):
-            for interval_1 in bins_name:
                 the_map_to_list = []
-                # extract first
+                # calc the relative value
                 for interval in bins_name:
+                    learnt_p_B_gv_T_B1[t][interval_1][interval] = p_T_B[interval][t] + p_B1_B[interval][interval_1] + p_B[interval]
                     the_map_to_list.append(learnt_p_B_gv_T_B1[t][interval_1][interval])
+                    print(t, interval_1, interval, p_T_B[interval][t], p_B1_B[interval][interval_1], p_B[interval])
                 
-                smoothed_list = get_distribution_with_laplace_smoothing(the_map_to_list)
-                # recover then
+                # smooth it
+                smoothed_list = get_distribution_with_laplace_smoothing(np.exp(the_map_to_list))
                 ith = 0
                 for interval in bins_name:
                     learnt_p_B_gv_T_B1[t][interval_1][interval] = smoothed_list[ith]
                     ith += 1
-                    # print(t, interval_1, learnt_p_B_gv_T_B1[t][interval_1])
+                print('smoothed final', t, interval_1, learnt_p_B_gv_T_B1[t][interval_1])
                 
         return learnt_p_B_gv_T_B1
 

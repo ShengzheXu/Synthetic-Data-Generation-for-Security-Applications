@@ -68,18 +68,34 @@ def sample_choice(filename, num_of_row):
     do_write(all_record, 'sampled_10IPs')
 
 occur_dict = {}
+outgoing_dict = {}
+incoming_dict = {}
 def cal_stats(df):
     for r in zip(df['sa'], df['da']):
+        # count occurence of the sa
         if r[0].startswith(internal_ip):
             if r[0] in occur_dict:
                 occur_dict[r[0]] += 1
             else:
                 occur_dict[r[0]] = 1
+            # judge the outgoing traffic to an external ip
+            if not r[1].startswith(internal_ip):
+                if r[0] in outgoing_dict:
+                    outgoing_dict[r[0]] += 1
+                else:
+                    outgoing_dict[r[0]] = 1
+        # count occurence of the da
         if r[1].startswith(internal_ip):
             if r[1] in occur_dict:
                 occur_dict[r[1]] += 1
             else:
                 occur_dict[r[1]] = 1
+            # judge the incoming traffic from an external ip
+            if not r[0].startswith(internal_ip):
+                if r[1] in incoming_dict:
+                    incoming_dict[r[1]] += 1
+                else:
+                    incoming_dict[r[1]] = 1
 
 def analyze():
     starttime = datetime.now()
@@ -101,13 +117,32 @@ def analyze():
     most_occure = sorted( ((v,k) for k,v in occur_dict.items()), reverse=True)
     print("most bi-direction traffic users", most_occure[:20])
 
+    categories_count = [0, 0, 0, 0] # both sent&recieve, only sent to ex, only recieve from ex, interal-to-internal
     with open('data_stats.csv', 'w') as f:
-        outstring = 'number_of_rows,ip\n'
+        outstring = 'number_of_rows,ip,incoming_num,outgoing_num,user_type\n'
         for case in most_occure:
-            outstring += str(case[0]) + ',' + case[1] + '\n'
+            if case[1] not in incoming_dict:
+                incoming_dict[case[1]] = 0
+            if case[1] not in outgoing_dict:
+                outgoing_dict[case[1]] = 0
+            user_type = -1
+            if incoming_dict[case[1]]>0 and outgoing_dict[case[1]]>0:
+                categories_count[0] += 1
+                user_type = 0
+            elif incoming_dict[case[1]]==0 and outgoing_dict[case[1]]>0:
+                categories_count[1] += 1
+                user_type = 1
+            elif incoming_dict[case[1]]>0 and outgoing_dict[case[1]]==0:
+                categories_count[2] += 1
+                user_type = 2
+            else: # incoming_dict[case[1]]==0 and outgoing_dict[case[1]]==0
+                categories_count[3] += 1
+                user_type = 3
+            outstring += ','.join([str(case[0]), case[1], str(incoming_dict[case[1]]), str(outgoing_dict[case[1]]), str(user_type), '\n'])
         
         f.write(outstring)
-
+    print("4 categories count: both sent&recieve, only sent to ex, only recieve from ex, interal-to-internal")
+    print(categories_count)
     endtime = datetime.now()
     print('process time', (endtime-starttime).seconds)
 

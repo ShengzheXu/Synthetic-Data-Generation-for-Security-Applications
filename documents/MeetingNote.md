@@ -1,8 +1,48 @@
+# May 28 Tue discussion
+
+1. local hosts types: # both sent&recieve, only sent to ex, only recieve from ex, interal-to-internal
+    [695, 0, 3401, 292]
+
+2. designed workflow for the NN model (refer to the pixelCNN++ implementation)
+    input process
+
+    NN structure
+    loss function
+
+    train process
+
+3. how many contents can be enough to make one publication?
+    3.1 we already planned to model and generate the network table (meta attributes).
+
+4. bsl2 average log-likelihood -4.394703373188085
+   bsl1 average log-likelihood -1.74
+
+# May 27 Mon plan
+
+1. looks #flow (time-delta) is better to model conditioned on the hour T; we can do both for the time being
+
+2. survery how many users are there in three categories:
+    
+    local hosts
+    - only sent to ex
+    - only recieve from ex
+    - both sent & receive [we focus]
+    - interal to interal [ignore]
+
+3. Do debug for baseline 2
+    1. do laplacian smoothing (which already includes normolization) for 
+        learnt_p_B_gv_T_B1[t][interval_1][interval] = p_T_B[t][interval] * p_B[interval] * p_B1_B[interval_1][interval]
+    2. laplacian smoothing (which already includes dealing with 0 Denominator situation (same probability to all terms))
+
+4. read papers <>
+
 # May 24 discussion
 
 1. Timeline of AAAI & ask for twice meeting a week
 
-2. debug for baseline2 [nan issue] and GMM pr for an interval shouldn't be negative.
+2. for the PixelCNN++the loss function of the NN is the negative log likelihood
+
+3. debug for baseline2 [nan issue] and GMM pr for an interval shouldn't be negative.
     > 2.0 We use P(B|B-1, T) = P(T|B) * P(B-1|B) * P(B)
 
     > 2.1 To calculate P(B)
