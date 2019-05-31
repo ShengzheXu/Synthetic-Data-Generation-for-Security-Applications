@@ -15,7 +15,8 @@ if __name__ == "__main__":
     if '-raw' in sys.argv:
         print('reach show raw_data')
         
-        source_folder = './data/midium100users/raw_data/'
+        # source_folder = './data/midium100users/raw_data/'
+        source_folder = './data/raw_data/'
         # source_folder = './data/gen_data/baseline2_1days_folder/'
 
         all_record = pd.concat([pd.read_csv(f) for f in glob.glob(source_folder+'*.csv')], ignore_index = True)
@@ -37,7 +38,8 @@ if __name__ == "__main__":
         # source_data = './data/raw_data/%s.csv' % testing_name
         # all_record = pd.read_csv(source_data)
 
-        source_folder = './data/midium100users/raw_data/'
+        # source_folder = './data/midium100users/raw_data/'
+        source_folder = './data/raw_data/'
         # source_folder = './data/gen_data/baseline2_1days_folder/'
 
         all_record = pd.concat([pd.read_csv(f) for f in glob.glob(source_folder+'*.csv')], ignore_index = True)

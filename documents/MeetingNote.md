@@ -1,4 +1,31 @@
-# May 28 Tue discussion
+# May 31 Fri plan & discussion
+
+
+
+# May 30 Thu plan
+
+1. work on 5 tasks mentioned yesterday.
+
+2. read papers and thinking.
+
+# May 29 Wed plan and discussion
+
+for type 3 users: external sites are doing port scanning attack
+
+1. for 4 categories, plot time distribution for #byt, #flow
+
+2. for 695 select middle users -> show temperal behaviour of them
+
+3. how many of them in our previous 100 users is in type 0
+    only 3 of our previous chosen users belongs to type 0. ['42.219.158.210', '42.219.157.26', '42.219.153.13']
+
+4. to correct: do normalization in step 2 and do laplacian only in step 1. Use log sum exp trick, and for each B-1, T, the sum of P(B|B-1, T) for all B, should be 1.
+    Done
+
+5. step3, sample from the table[t][b-1], instead of argmax
+    Done
+
+# May 28 Tue plan
 
 1. local hosts types: # both sent&recieve, only sent to ex, only recieve from ex, interal-to-internal
     [695, 0, 3401, 292]

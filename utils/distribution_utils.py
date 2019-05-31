@@ -10,3 +10,10 @@ def get_distribution_with_laplace_smoothing(a_count):
         p.append(adj_component)
     # print('laplace_smoothing:\n', a_count, '\n', p)
     return p
+
+def log_sum_exp_trick(ns):
+    import numpy as np
+    max = np.max(ns)
+    ds = ns - max
+    sumOfExp = np.exp(ds).sum()
+    return max + np.log(sumOfExp)

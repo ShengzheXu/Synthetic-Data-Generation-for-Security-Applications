@@ -241,6 +241,7 @@ class baseline2(baseline):
 
         pr = all_record['bytBins'].value_counts()/all_record['bytBins'].size
         bins_name = pr.keys()
+        self.bins_name_list = bins_name
         p_B = {}
         p_T_B = {}
         p_B1_B = {}
@@ -294,13 +295,15 @@ class baseline2(baseline):
                     the_map_to_list.append(learnt_p_B_gv_T_B1[t][interval_1][interval])
                     print(t, interval_1, interval, p_T_B[interval][t], p_B1_B[interval][interval_1], p_B[interval])
                 
-                # smooth it
-                smoothed_list = get_distribution_with_laplace_smoothing(np.exp(the_map_to_list))
+                # normalize it
+                from utils.distribution_utils import log_sum_exp_trick
+                ln_sum = log_sum_exp_trick(the_map_to_list)
+                normed_list = the_map_to_list / ln_sum
                 ith = 0
                 for interval in bins_name:
-                    learnt_p_B_gv_T_B1[t][interval_1][interval] = smoothed_list[ith]
+                    learnt_p_B_gv_T_B1[t][interval_1][interval] = normed_list[ith]
                     ith += 1
-                print('smoothed final', t, interval_1, learnt_p_B_gv_T_B1[t][interval_1])
+                # print('normed final', t, interval_1, learnt_p_B_gv_T_B1[t][interval_1])
                 
         return learnt_p_B_gv_T_B1
 
@@ -312,8 +315,11 @@ class baseline2(baseline):
         else:
             b1 = self.find_bin(np.log(b_1))
             # print(t,b_1,b1)
-            maxB = max(self.learnt_p_B_gv_T_B1[t][b1].items(), key=operator.itemgetter(1))[0]
-            return np.random.uniform(maxB.left, maxB.right)
+            normed_list = [self.learnt_p_B_gv_T_B1[t][interval_1][interval] for interval in self.bins_name_list]
+            
+            print("check_sum", sum(normed_list), self.learnt_p_B_gv_T_B1[t][b1])
+            selected_B = np.random.choice(self.bins_name_list, p=normed_list)
+            return np.random.uniform(selected_B.left, selected_B.right)
     
     def save_the_model(self):
         self.save_common_params()

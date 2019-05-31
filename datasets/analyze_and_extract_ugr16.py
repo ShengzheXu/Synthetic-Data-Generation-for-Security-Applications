@@ -138,7 +138,7 @@ def analyze():
             else: # incoming_dict[case[1]]==0 and outgoing_dict[case[1]]==0
                 categories_count[3] += 1
                 user_type = 3
-            outstring += ','.join([str(case[0]), case[1], str(incoming_dict[case[1]]), str(outgoing_dict[case[1]]), str(user_type), '\n'])
+            outstring += ','.join([str(case[0]), case[1], str(incoming_dict[case[1]]), str(outgoing_dict[case[1]]), str(user_type)]) + '\n'
         
         f.write(outstring)
     print("4 categories count: both sent&recieve, only sent to ex, only recieve from ex, interal-to-internal")
@@ -146,9 +146,17 @@ def analyze():
     endtime = datetime.now()
     print('process time', (endtime-starttime).seconds)
 
-def plot_refer(stats_file, set_config_user=False):
+def previous_check(previous_user_list, a_ip_list):
+    retA = [i for i in previous_user_list if i in a_ip_list]
+    print('previous ip type 0',len(retA), retA)
+
+
+def plot_refer(stats_file, set_config_user=False, previous_user_list=None):
     a = pd.read_csv(stats_file)
     a = a[a['ip'].str.startswith(internal_ip)]
+    a = a[a['user_type'] == 0]
+    if previous_user_list is not None:
+        previous_check(previous_user_list, a['ip'].tolist())
     sys.path.append('../')
     print("current sys path:", sys.path)
     from utils.plot_utils import plot_source_distribution
@@ -164,7 +172,7 @@ def plot_refer(stats_file, set_config_user=False):
 
     from random import sample
     selected_users_index = sample(range(q_1, q_3), 100)
-    selected_users_index = range(450, 551)
+    # selected_users_index = range(450, 551)
     print(q_1, q_3, selected_users_index)
     
     for i in selected_users_index:
@@ -191,6 +199,7 @@ if __name__ == "__main__":
     config = configparser.ConfigParser()
     config.read('./../config.ini')
     normal_datafile = config['DEFAULT']['huge_data_path']
+    previous_user_list = config['DEFAULT']['userlist'].split(',')
 
     if '-a' in sys.argv:
         print('reach analyze')
@@ -199,10 +208,11 @@ if __name__ == "__main__":
     if '-p' in sys.argv or '-pw' in sys.argv:
         print('reach plot_stats')
         stats_file = 'bidirection_data_stats_3traffic.csv'
+        stats_file = 'data_stats.csv'
         if '-pw' in sys.argv:
-            plot_refer(stats_file, True)
+            plot_refer(stats_file, True, previous_user_list)
         else:
-            plot_refer(stats_file)
+            plot_refer(stats_file,False, previous_user_list)
     
     if '-e' in sys.argv:
         print('reach extract')
