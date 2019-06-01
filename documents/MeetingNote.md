@@ -1,6 +1,38 @@
+# June 1st Sat plan
+
+1. upload to the gans server and try running there
+
+
 # May 31 Fri plan & discussion
 
+1. paper whole picture discussion
 
+    As a good paper, we first include most of the network flow attributes. We build solution/architecture for generating network data.
+    The data have similar format/major of the fields. Then compare to the baselines.
+
+    As a conclusion, the body of this work has: 1. gen major attributes; 2. do validation on ML tasks.
+
+2. how do we validate the generated data that NN model is better?
+    It's the same question that how well the data is good for predictive tasks.
+    
+    2.1 For example, using other fields to predict the one, like protocol.
+    compare gen data <-> real data (test). Should have similar results.
+    
+    2.2 time-dependent task (harder)
+
+    This'll show gen data is subtitude for real data for ML tasks.
+
+3. To achieve this, we should design carefully that how we can distinguish ours with prior works.
+
+4. We can also use domain knowledge to constrain the training/validation
+
+5. For the delta_T attrbute, if we want to build the relationship between d_T and hour of the day.
+
+    To make it simple, first check the linear dependency (correlation co-efficiency). if it -> 0, just do what we already have.
+
+    Otherwise, maybe try poison distribution
+
+6. fixed baseline2 log-likelihood for multi-user start byt-1 problem
 
 # May 30 Thu plan
 

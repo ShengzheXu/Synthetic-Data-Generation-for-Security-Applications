@@ -362,3 +362,4 @@ ten_ip,baseline1 ==> time:342.28333333333336mins
 100users,1days,baseline2 ==> time:0.2mins
 100users,1days,baseline2 ==> time:0.2mins
 100users,1days,baseline2 ==> time:0.18333333333333332mins
+train: 100users,1days,baseline1 ==> train likelihood:-2.0030466754168033 ==> outgoing prob:0.4742624833403745 ==> time:3.4mins
