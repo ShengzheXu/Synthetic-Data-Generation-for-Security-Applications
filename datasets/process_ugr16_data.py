@@ -32,7 +32,7 @@ def filter(source_data, name_str, write_clean=True):
     # print(all_record.tail())
 
     # add byt-1 column
-    all_record['byt-1'] = all_record['byt'].shift(1).fillna(2).astype(int)
+    all_record['byt-1'] = all_record['byt'].shift(1).fillna(-1).astype(int)
 
     # add teT & teS & teDelta column
     all_record['teT'] = all_record['te'].apply(date_to_T).astype(int)

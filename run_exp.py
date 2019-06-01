@@ -129,14 +129,13 @@ def gen_one(model1, for_whom):
 
     while True:
         dep_info = [now_t, last_b] if baseline_choice == 'baseline2' else []
-        gen_te, gen_sip, gen_dip, gen_byt, gen_te_delta = model1.generate_one(dep_info)
+        gen_date_obj, gen_te, gen_sip, gen_dip, gen_byt, gen_te_delta = model1.generate_one(dep_info)
         gen_data.append([gen_te, gen_sip, gen_dip, gen_byt, gen_te_delta])
         now_t = int(str(gen_te)[11:13])
         last_b = gen_byt
         cnt += 1
         print(cnt, for_whom, gen_data[-1])
 
-        gen_date_obj = datetime.strptime(gen_te, '%Y-%m-%d %H:%M:%S')
         date_spray = (gen_date_obj-start_date_obj).days
         # print('============', date_spray, type(date_spray), day_number)
         if date_spray >= day_number:

@@ -1,4 +1,3 @@
-data/baseline1&2/*
-params_*.npy
+./pj1_venv/*
 *.pyc
 *.zip

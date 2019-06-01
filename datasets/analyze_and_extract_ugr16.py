@@ -192,8 +192,12 @@ def plot_refer(stats_file, set_config_user=False, previous_user_list=None):
 def recover_userlist_from_folder():
     import glob
     source_folder = './../data/raw_data/'
-    user_list = [f.split('_')[-1][:-4] for f in glob.glob(source_folder+'*.csv')]
-    print('recovered userlist:', user_list)
+    user_list = []
+    how_long = 0
+    for f in glob.glob(source_folder+'*.csv'):
+        user_list.append(f.split('_')[-1][:-4])
+        how_long += len(pd.read_csv(f).index)
+    print('recovered userlist: %d rows in total\n' % how_long, user_list)
     config = configparser.ConfigParser()
     config.read('./../config.ini')
     config['DEFAULT']['userlist'] = ','.join(user_list)

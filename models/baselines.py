@@ -58,7 +58,7 @@ class baseline(object):
         gen_te = self.start_date_time_obj.strftime("%Y-%m-%d %H:%M:%S")
         gen_sip, gen_dip = self.generate_sd_ip()
 
-        return gen_te, gen_sip, gen_dip, gen_te_delta
+        return self.start_date_time_obj, gen_te, gen_sip, gen_dip, gen_te_delta
 
     def generate_sd_ip(self):
         import random
@@ -157,12 +157,12 @@ class baseline1(baseline):
         self.likelihood = log_likeli
 
     def generate_one(self, dep_info=None):
-        gen_te, gen_sip, gen_dip, gen_te_delta = self.generate_sup_info()
+        gen_date_obj, gen_te, gen_sip, gen_dip, gen_te_delta = self.generate_sup_info()
 
         gen_byt, _ = self.byt_model.sample()
         gen_byt = int(np.exp(gen_byt[0]))
         
-        return gen_te, gen_sip, gen_dip, gen_byt, gen_te_delta
+        return gen_date_obj, gen_te, gen_sip, gen_dip, gen_byt, gen_te_delta
     
     def save_the_model(self):
         self.save_common_params()
@@ -187,39 +187,57 @@ class baseline2(baseline):
         self.cal_likelihood(byt_log_train, byt1_log_train, teT_train)
 
     def cal_likelihood(self, given_data_byt, given_data_byt_1, given_data_T):
-        # cal marginal likelihood
-        id_byt_interval = self.find_bin(given_data_byt[0][0])
-        gmm_pdf = lambda x: self.byt_model.score_samples(np.reshape([x], (-1, 1)))
-        p_b, _est_error = integrate.quad(gmm_pdf, id_byt_interval.left, id_byt_interval.right)
-        add_likeli = p_b
-        print('marginal likelihood', add_likeli, 'from', given_data_byt[0][0], '=>', id_byt_interval)
+        add_likeli = 0
 
-        # cal rest of the joint likelihood for learnt_p_B_gv_T_B1[t][interval_1][interval]
-        for id in range(1, len(given_data_byt)):
+        user_order = 1
+        for id in range(0, len(given_data_byt)):
             # print(id, len(byt_log_train), len(byt_log_train[id]))
-            id_byt = self.find_bin(given_data_byt[id][0])
-            id_byt_1 = self.find_bin(given_data_byt_1[id][0])
-            id_t = given_data_T[id][0]
-            print('calcing lileli, t:', id_t, given_data_byt[id][0], "=>", id_byt, ";", given_data_byt_1[id][0], "=>", id_byt_1)
-            add_likeli += np.log(self.learnt_p_B_gv_T_B1[id_t][id_byt_1][id_byt])
+            # marginal distribution
+            if given_data_byt_1[id][0] == -1:
+                print('%dth row, %dth user' % (id, user_order))
+                user_order += 1
+                id_byt_interval = self.find_bin(given_data_byt[id][0])
+                gmm_pdf = lambda x: self.byt_model.score_samples(np.reshape([x], (-1, 1)))
+                p_b, _est_error = integrate.quad(gmm_pdf, id_byt_interval.left, id_byt_interval.right)
+                add_likeli += p_b
+                print('marginal likelihood', add_likeli, 'from', given_data_byt[0][0], '=>', id_byt_interval)
+            # cal rest of the joint likelihood for learnt_p_B_gv_T_B1[t][interval_1][interval]
+            else:
+                id_byt = self.find_bin(given_data_byt[id][0])
+                id_byt_1 = self.find_bin(given_data_byt_1[id][0])
+                id_t = given_data_T[id][0]
+                # print('calcing lileli, %dth row, t:'%id, id_t, given_data_byt[id][0], "=>", id_byt, ";", given_data_byt_1[id][0], "=>", id_byt_1)
+                add_likeli += np.log(self.learnt_p_B_gv_T_B1[id_t][id_byt_1][id_byt])
         
         log_likeli = add_likeli/len(given_data_byt)
         print('likelihood:', add_likeli, 'average likelihood', log_likeli)
         self.likelihood = log_likeli
     
     def generate_one(self, dep_info):
-        gen_te, gen_sip, gen_dip, gen_te_delta = self.generate_sup_info()
+        gen_date_obj, gen_te, gen_sip, gen_dip, gen_te_delta = self.generate_sup_info()
 
         [now_t, last_b] = dep_info
         gen_byt = self.select_bayesian_output(now_t, last_b)
         gen_byt = int(np.exp(gen_byt))
         
-        return gen_te, gen_sip, gen_dip, gen_byt, gen_te_delta
+        return gen_date_obj, gen_te, gen_sip, gen_dip, gen_byt, gen_te_delta
 
     def find_bin(self, byt_number):
         # print('byt_number', byt_number, self.bins)
         # print(type(self.bins))
-        return pd.cut([byt_number], self.bins)[0]
+        l = 0
+        r = len(self.bins_name_list)
+        while l<r:
+            mid = (l+r)/2
+            mid_bin = self.bins_name_list[mid]
+            if mid_bin.left < byt_number <= mid_bin.right:
+                return mid_bin
+            if byt_number > mid_bin.right:
+                l = mid + 1
+            elif byt_number <= mid_bin.left:
+                r = mid
+        print("????????????????????????")
+        # return pd.cut([byt_number], self.bins)[0]
 
     # def integrate(self, f, a, b, N):
     #     x = np.linspace(a+(b-a)/(2*N), b-(b-a)/(2*N), N)
@@ -315,7 +333,7 @@ class baseline2(baseline):
         else:
             b1 = self.find_bin(np.log(b_1))
             # print(t,b_1,b1)
-            normed_list = [self.learnt_p_B_gv_T_B1[t][interval_1][interval] for interval in self.bins_name_list]
+            normed_list = [self.learnt_p_B_gv_T_B1[t][b1][interval] for interval in self.bins_name_list]
             
             print("check_sum", sum(normed_list), self.learnt_p_B_gv_T_B1[t][b1])
             selected_B = np.random.choice(self.bins_name_list, p=normed_list)

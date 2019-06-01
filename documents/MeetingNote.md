@@ -2,6 +2,7 @@
 
 1. upload to the gans server and try running there
 
+2. accelerating the find bin into binary search
 
 # May 31 Fri plan & discussion
 
