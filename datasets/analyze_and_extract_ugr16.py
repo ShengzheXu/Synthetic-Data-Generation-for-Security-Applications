@@ -165,7 +165,6 @@ def plot_refer(stats_file, set_config_user=False, previous_user_list=None):
     plot_source_distribution(np.log(num_of_connection))
 
     user_addresses = a['ip'].values.tolist()
-    print(len(num_of_connection), sum(num_of_connection))
     q_1 = int(len(num_of_connection)/4)
     median_index = int(len(num_of_connection)/2)
     q_3 = int(len(num_of_connection)*3/4)
@@ -173,10 +172,12 @@ def plot_refer(stats_file, set_config_user=False, previous_user_list=None):
     from random import sample
     selected_users_index = sample(range(q_1, q_3), 100)
     # selected_users_index = range(450, 551)
-    print(q_1, q_3, selected_users_index)
     
     for i in selected_users_index:
         print(user_addresses[i], num_of_connection[i])
+    
+    print('total:', len(num_of_connection), sum(num_of_connection))
+    print('we selected between:', q_1, q_3, selected_users_index)
     
     selected_users = [str(user_addresses[x]) for x in selected_users_index]
     if set_config_user is True:
@@ -187,6 +188,19 @@ def plot_refer(stats_file, set_config_user=False, previous_user_list=None):
         
         with open('./../config.ini', 'w') as configfile:
             config.write(configfile)
+    
+def recover_userlist_from_folder():
+    import glob
+    source_folder = './../data/raw_data/'
+    user_list = [f.split('_')[-1][:-4] for f in glob.glob(source_folder+'*.csv')]
+    print('recovered userlist:', user_list)
+    config = configparser.ConfigParser()
+    config.read('./../config.ini')
+    config['DEFAULT']['userlist'] = ','.join(user_list)
+    config['GENERATE']['gen_users'] = ','.join(user_list)
+    
+    with open('./../config.ini', 'w') as configfile:
+        config.write(configfile)
 
 # call this function with python3 UGR16.py [arg], where [arg] is '-a', '-p' or '-e' (for probe and extract seperately).
 if __name__ == "__main__":
@@ -204,6 +218,10 @@ if __name__ == "__main__":
     if '-a' in sys.argv:
         print('reach analyze')
         analyze()
+    
+    if '-r' in sys.argv:
+        print('recovering user list from folder')
+        recover_userlist_from_folder()
 
     if '-p' in sys.argv or '-pw' in sys.argv:
         print('reach plot_stats')

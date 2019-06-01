@@ -74,6 +74,7 @@ def flush(gen_data):
         writer.writerows(gen_data)
 
 def train_model(baseline_choice):
+    starttime = datetime.now()
     final_byt_log_train = np.reshape(np.array([]), (-1, 1))
     final_time_delta_train = np.reshape(np.array([]), (-1, 1))
     final_sip = []
@@ -107,6 +108,11 @@ def train_model(baseline_choice):
     print("teT::", type(final_teT_df_col), final_teT_df_col.shape)
     model1 = model_prepare(original_date, final_sip, final_byt_log_train, final_time_delta_train, final_sip_train, final_dip_train, final_byt1_log_train, final_teT_train, final_teT_df_col)
     print(model1.likelihood)
+    endtime = datetime.now()
+    with open("exp_record.txt", "a") as myfile:
+        myfile.write('train: ' + str(len(user_list)) + 'users,' + str(day_number) +'days,'+ baseline_choice
+            + ' ==> train likelihood:' + str(model1.likelihood) + ' ==> outgoing prob:' + str(model1.outgoing_prob) 
+            + ' ==> time:' + str((endtime-starttime).seconds/60) + 'mins\n')
     return model1
 
 def gen_one(model1, for_whom):
@@ -141,7 +147,7 @@ def gen_one(model1, for_whom):
 
     endtime = datetime.now()
     with open("exp_record.txt", "a") as myfile:
-        myfile.write(str(len(user_list)) + 'users,' + str(day_number) +'days,'+ baseline_choice
+        myfile.write('generationg: ' + str(len(user_list)) + 'users,' + str(day_number) +'days,'+ baseline_choice
             + ' ==> time:' + str((endtime-starttime).seconds/60) + 'mins\n')
 
 

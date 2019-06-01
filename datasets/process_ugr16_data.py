@@ -131,36 +131,22 @@ if __name__ == "__main__":
     overall_min = 0x7f7f7f7f
     overall_max = 0
     data_points = []
-    if '-f' in sys.argv or '-fw' in sys.argv or '-w' in sys.argv:
-        print('reach filter, to generate the expanded_csv files')
-        
-        print(overall_max, overall_min)
-        for ip_str in user_list:
-            source_data = working_folder + 'raw_data/day_1_%s.csv' % ip_str
-            # conduct filter func for expanded csv
-            if '-w' in sys.argv:
-                one_data = filter(source_data, ip_str, write_clean=False)
-            else:
-                print('write to cleaned files')
-                one_data = filter(source_data, ip_str, write_clean=True)
+    #if '-clean' in sys.argv or '-cleanandbin' in sys.argv or '-purebin' in sys.argv:
+    print('reach filter, to generate the expanded_csv files')
+    
+    print(overall_max, overall_min)
+    for ip_str in user_list:
+        source_data = working_folder + 'raw_data/day_1_%s.csv' % ip_str
+        # conduct filter func for expanded csv
+        if '-purebin' in sys.argv:
+            one_data = filter(source_data, ip_str, write_clean=False)
+        else:
+            print('write to cleaned files')
+            one_data = filter(source_data, ip_str, write_clean=True)
 
-            # data_points_num += row_num
-            data_points = data_points + one_data
-            # print(ip_str, 'row_num', row_num , 'min:', min_value, ', max:', max_value)
-        # print('allinall', data_points_num, overall_min, overall_max)
+        data_points = data_points + one_data
 
     print(len(data_points))
     # update the config_ini for the bin size issue
-    if '-w' in sys.argv or '-fw' in sys.argv:
-        # decide_bin_scale(config, data_points_num, overall_min, overall_max)
+    if '-cleanandbin' in sys.argv or '-purebin' in sys.argv:
         decide_bin_scale(config, data_points)
-    
-    # if '-split_t' in sys.argv:
-    #     print('reach split_t')
-    #     target_dir = '../data/baseline1&2/gen_data/'
-    #     target_name_pattern = ''
-
-    #     for ip_str in user_list:
-    #         source_data = 'data/baseline1&2/raw_data/'
-    #         split_file(source_data, 'day_1_%s.csv' % ip_str)
-        
