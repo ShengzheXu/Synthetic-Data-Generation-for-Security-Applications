@@ -1,3 +1,8 @@
+# June 3rd Mon plan
+
+1. Question: the more bins we have, after the normalization, the probability absolute value for each bin is smaller.
+    Then the likelihood would go more bad. Does this makes sense?
+
 # June 2nd Sun plan
 
 1. [Done] fix: baseline2 save_model memory error

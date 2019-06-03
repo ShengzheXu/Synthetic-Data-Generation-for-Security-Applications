@@ -127,6 +127,7 @@ if __name__ == "__main__":
     
     user_list = config['DEFAULT']['userlist'].split(',')
     working_folder = config['DEFAULT']['working_folder']
+    baseline_choice = config['DEFAULT']['baseline']
     bins = list(map(float, config['DEFAULT']['bins'].split(',')))
     
     test_list = config['VALIDATE']['test_set'].split(',')
@@ -146,31 +147,9 @@ if __name__ == "__main__":
             y_data.append(y_data_i)
             
         boxplot(x_data, y_data, title='KL(99 other raw ips || 1 raw_ip)')
-
-    if config['VALIDATE']['gen_compare'] == 'True':
-        x_data = []
-        y_data = []
-        for ip2 in test_list:
-            x_data.append(ip2)
-            y_data_i = []
-            for ip1 in user_list: 
-                src_file = 'raw_data/day_1_%s.csv' % ip1
-                des_file = 'gen_data/%s.csv' % ip2
-                y_data_i.append(vali_one(src_file, des_file, bins))
-            y_data.append(y_data_i)
-        
-        # x_data.append('10 users 1 day to their own raw')
-        # y_data_i = []
-        # for ip3 in user_list:
-        #     src_file = 'raw_data/day_1_%s.csv' % ip3
-        #     des_file = 'gen_data/multi_users/baseline2_1days_%s.csv' % ip3
-        #     y_data_i.append(vali_one(src_file, des_file))
-        # y_data.append(y_data_i)
-        
-        boxplot(x_data, y_data, title='KL(10 raw ips || gen baseline)')
     
     if config['VALIDATE']['hour_compare'] == 'True':
-        for ip2 in test_list:
+        for ip2 in user_list:
             x_data = []
             y_data = []
             for h in range(24):
@@ -179,7 +158,7 @@ if __name__ == "__main__":
             
             for ip1 in user_list: 
                 src_file = 'raw_data/day_1_%s.csv' % ip1
-                des_file = 'gen_data/%s.csv' % ip2
+                des_file = 'gen_data/%s_1days_folder/%s_1days_%s.csv' % (baseline_choice, baseline_choice, ip2)
                 y_data_i = vali_hourly(src_file, des_file, bins)
                 for h in range(24):
                     y_data[h].append(y_data_i[h])

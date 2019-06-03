@@ -10,7 +10,7 @@ from utils.distribution_utils import log_sum_exp_trick
 import os
 import random
 
-np.random.seed(131)
+# np.random.seed(131)
 
 class cached_model(object):
     def __init__(self, samplable_model):
@@ -19,7 +19,7 @@ class cached_model(object):
         self.pool_volume = 100000
     
     def sample(self):
-        if self.cache_pool == []:
+        if len(self.cache_pool) == 0:
             self.cache_pool, _ = self.samplable_model.sample(self.pool_volume)
             # print('x', self.cache_pool)
             # print('_', _)
@@ -153,7 +153,7 @@ class baseline(object):
         self.dip_cache = []
     
     def adjusted_time_delta_for_high_throughput(self, te_delta):
-        adj_te_delta = int(te_delta[0]) if int(te_delta[0])>=0 else 0
+        adj_te_delta = int(te_delta[0]) if int(te_delta[0])>=1 else 1
         if self.te_adj:
             time_eps = np.random.randint(6)
             if time_eps == 0:
@@ -334,6 +334,8 @@ class baseline2(baseline):
         learnt_p_B_gv_T_B1 = {}
         for t in range(24):
             print("learning learnt_p_B_gv_T_B1 table: t = %d" % t)
+            ex_label = 0
+
             learnt_p_B_gv_T_B1[t] = {}
             for interval_1 in bins_name:
                 learnt_p_B_gv_T_B1[t][interval_1] = {}
@@ -349,8 +351,11 @@ class baseline2(baseline):
                 real_sum = np.exp(ln_sum)
 
                 normed_list = np.exp(the_map_to_list) / real_sum
-                
-                # print("check_sum", sum(normed_list), sum(the_map_to_list), ln_sum)
+                non_exp_normed_list = the_map_to_list / ln_sum
+                if ex_label == 0:
+                    print("check_sum", sum(normed_list), sum(np.exp(the_map_to_list)), real_sum)
+                    print("check non-exp sum", sum(non_exp_normed_list), sum(the_map_to_list), ln_sum)
+                    ex_label = 1
                 ith = 0
                 for interval in bins_name:
                     learnt_p_B_gv_T_B1[t][interval_1][interval] = normed_list[ith]
@@ -365,13 +370,15 @@ class baseline2(baseline):
             gen_byt = self.byt_model.sample()
             return gen_byt[0]
         else:
-            print(t,np.log(b_1))
+            # print(t,np.log(b_1))
             b1 = self.find_bin(np.log(b_1))
-            print('==>', t,b_1,b1)
+            # print('==>', t,b_1,b1)
             normed_list = [self.learnt_p_B_gv_T_B1[t][b1][interval] for interval in self.bins_name_list]
             
-            print("check_sum", sum(normed_list))
+            print("check_sum", t, b1, sum(normed_list))
+            print(normed_list)
             selected_B = np.random.choice(self.bins_name_list, p=normed_list)
+            # selected_B = max(self.learnt_p_B_gv_T_B1[t][b1].items(), key=operator.itemgetter(1))[0]
             return np.random.uniform(selected_B.left, selected_B.right)
     
     def save_the_model(self):

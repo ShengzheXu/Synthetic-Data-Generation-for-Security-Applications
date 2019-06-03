@@ -367,3 +367,8 @@ train: 100users,1days,baseline2 ==> train likelihood:0.9838829907477864 ==> outg
 train: 100users,1days,baseline2 ==> train likelihood:0 ==> outgoing prob:0.4742624833403745 ==> time:27.05mins
 train: 100users,1days,baseline2 ==> train likelihood:0 ==> outgoing prob:0.4742624833403745 ==> time:6.133333333333334mins
 train: 100users,1days,baseline2 ==> train likelihood:0.9838834858181287 ==> outgoing prob:0.4742624833403745 ==> time:6.333333333333333mins
+train: 100users,1days,baseline2 ==> train likelihood:0.9838834858181287 ==> outgoing prob:0.4742624833403745 ==> time:5.916666666666667mins
+generating: 100users,1days,baseline1 ==> time:9.016666666666667mins
+train: 100users,1days,baseline2 ==> train likelihood:-4.400328416943323 ==> outgoing prob:0.4742624833403745 ==> time:7.066666666666666mins
+generating: 100users,1days,baseline2 ==> time:70.26666666666667mins
+generating: 100users,1days,baseline2 ==> time:51.05mins

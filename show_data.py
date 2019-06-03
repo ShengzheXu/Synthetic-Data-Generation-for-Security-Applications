@@ -12,11 +12,10 @@ if __name__ == "__main__":
         print('no instruction input.')
         sys.exit()
         
-    # source_folder = './data/midium100users/raw_data/'
-    # source_folder = './data/gen_data/baseline2_1days_folder/'
-    source_folder = './data/raw_data/'
+    source_folder = './data/gen_data/baseline2_1days_folder/'
+    # source_folder = './data/raw_data/'
     
-    if '-flow' in sys.argv:
+    if '-flow' in sys.argv or '-all' in sys.argv:
         print('reach show raw_data')
 
         all_record = pd.concat([pd.read_csv(f) for f in glob.glob(source_folder+'*.csv')], ignore_index = True)
@@ -31,7 +30,7 @@ if __name__ == "__main__":
         
         plot_utils.temporal_lineplot(x_data, y_data, x_label="hour", y_label="#flow", title="#flow distribution over 100 users")
 
-    if '-bytperflow' in sys.argv:
+    if '-bytperflow' in sys.argv or '-all' in sys.argv:
         print('reach show raw_data')
 
         all_record = pd.concat([pd.read_csv(f) for f in glob.glob(source_folder+'*.csv')], ignore_index = True)
@@ -46,7 +45,22 @@ if __name__ == "__main__":
         
         plot_utils.temporal_lineplot(x_data, y_data, x_label="hour", y_label="#byt", title="average #byt per flow distribution over 100 users")
 
-    if '-bytdist' in sys.argv:
+    if '-byttotal' in sys.argv or '-all' in sys.argv:
+        print('reach show raw_data')
+
+        all_record = pd.concat([pd.read_csv(f) for f in glob.glob(source_folder+'*.csv')], ignore_index = True)
+
+        x_data = [source_folder]
+        y_data = [[]]
+        for t_hour in range(24):   
+            y_data_i = []
+            str_hour = str(t_hour) if t_hour > 9 else '0'+ str(t_hour)
+            chunk = all_record[all_record['te'].str.contains(' '+str_hour+':')]
+            y_data[0].append(sum(np.log(chunk['byt'].values.tolist())))
+        
+        plot_utils.temporal_lineplot(x_data, y_data, x_label="hour", y_label="#byt", title="#byt sum distribution over 100 users")
+
+    if '-bytdist' in sys.argv or '-all' in sys.argv:
         all_record = pd.concat([pd.read_csv(f) for f in glob.glob(source_folder+'*.csv')], ignore_index = True)
 
         x_data = []
