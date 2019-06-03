@@ -1,6 +1,17 @@
+# June 2nd Sun plan
+
+1. [Done] fix: baseline2 save_model memory error
+
+2. [Done] baseline2: likelihood calculation too slow
+
+3. [Done] baseline2: generation part, find bin function accelarating
+
+4. [Done] baseline1: sample more to a pool to speed up
+
 # June 1st Sat plan
 
 1. upload to the gans server and try running there
+    Done, using screen and venv
 
 2. accelerating the find bin into binary search
 

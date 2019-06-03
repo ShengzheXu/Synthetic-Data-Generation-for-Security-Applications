@@ -116,9 +116,6 @@ def train_model(baseline_choice):
     return model1
 
 def gen_one(model1, for_whom):
-    
-    starttime = datetime.now()
-    
     gen_data = []
     now_t = 0
     last_b = -1
@@ -143,11 +140,6 @@ def gen_one(model1, for_whom):
                 flush(gen_data[:-1])
                 gen_data = [gen_data[-1]]
             break
-
-    endtime = datetime.now()
-    with open("exp_record.txt", "a") as myfile:
-        myfile.write('generationg: ' + str(len(user_list)) + 'users,' + str(day_number) +'days,'+ baseline_choice
-            + ' ==> time:' + str((endtime-starttime).seconds/60) + 'mins\n')
 
 
 if __name__ == "__main__":
@@ -179,7 +171,8 @@ if __name__ == "__main__":
         model1 = train_model(baseline_choice)
         model1.save_the_model()
     
-    if '-gen' in sys.argv:
+    if '-gen' in sys.argv:    
+        starttime = datetime.now()
         # generate the data
         if model1 is None:
             if baseline_choice == 'baseline1':
@@ -204,4 +197,9 @@ if __name__ == "__main__":
             print('generating single user')
             saving_str = "gen_data/%s_%sdays.csv" % (baseline_choice, day_number)
             gen_one(model1, gen_users)
+
+        endtime = datetime.now()
+        with open("exp_record.txt", "a") as myfile:
+            myfile.write('generating: ' + str(len(user_list)) + 'users,' + str(day_number) +'days,'+ baseline_choice
+                + ' ==> time:' + str((endtime-starttime).seconds/60) + 'mins\n')
     
