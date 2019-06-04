@@ -375,3 +375,4 @@ generating: 100users,1days,baseline2 ==> time:51.05mins
 train: 100users,1days,baseline3 ==> train likelihood:-5.487219888799446 ==> outgoing prob:0.4742624833403745 ==> time:5.75mins
 generating: 100users,1days,baseline3 ==> time:61.233333333333334mins
 train: 100users,1days,baseline2 ==> train likelihood:-4.4003284169433226 ==> outgoing prob:0.4742624833403745 ==> time:6.533333333333333mins
+generating: 100users,1days,baseline2 ==> time:64.0mins
