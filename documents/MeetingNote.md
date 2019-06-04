@@ -1,3 +1,7 @@
+# June 4th Tue plan & discussion
+
+1. try smaller bins number.
+
 # June 3rd Mon plan
 
 1. Question: the more bins we have, after the normalization, the probability absolute value for each bin is smaller.
@@ -7,6 +11,8 @@
 
 2. the shape of baseline3 looks better, but the absolute value still very large.
     Maybe it's because many rows' byt very small?
+
+3. validating results
 
 # June 2nd Sun plan
 
