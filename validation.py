@@ -84,8 +84,8 @@ def show_distribution(target_data, bins):
     return pk
 
 def show_conditioned_distribution(bins):
-    target_folder = './data/raw_data/'
-    # target_folder = './data/gen_data/baseline3_1days_folder/'
+    # target_folder = './data/raw_data/'
+    target_folder = './data/gen_data/baseline2_1days_folder/'
     # target_folder = './data/gen_data/sample_baseline2_1days_folder/'
     # target_folder = './data/gen_data/argmax_baseline2_1days_folder/'
 
