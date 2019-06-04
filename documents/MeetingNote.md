@@ -3,6 +3,11 @@
 1. Question: the more bins we have, after the normalization, the probability absolute value for each bin is smaller.
     Then the likelihood would go more bad. Does this makes sense?
 
+    Maybe not able to compare baseline1 and baseline2, if the metric is different
+
+2. the shape of baseline3 looks better, but the absolute value still very large.
+    Maybe it's because many rows' byt very small?
+
 # June 2nd Sun plan
 
 1. [Done] fix: baseline2 save_model memory error

@@ -6,6 +6,8 @@ import configparser
 from utils.config_utils import recieve_cmd_config
 from utils.plot_utils import boxplot
 from utils.plot_utils import temporal_lineplot
+from utils.plot_utils import distribution_lineplot
+from utils.plot_utils import distribution_lineplot_inone
 from models.baselines import baseline1
 from utils.distribution_utils import get_distribution_with_laplace_smoothing
 import glob
@@ -71,7 +73,35 @@ def vali_one(raw_ip_str, gen_ip_str, bins):
 
     print(','.join([raw_ip_str, gen_ip_str, str(KL)]))
     return KL
+
+def show_distribution(target_data, bins):
+    values1 = list(np.log(target_data.byt))
+    cats1 = pd.cut(values1, bins)
+    pr1 = list(cats1.value_counts())
     
+    pk = get_distribution_with_laplace_smoothing(pr1)
+    # print('===', len(pk))
+    return pk
+
+def show_conditioned_distribution(bins):
+    target_folder = './data/raw_data/'
+    # target_folder = './data/gen_data/baseline3_1days_folder/'
+    # target_folder = './data/gen_data/sample_baseline2_1days_folder/'
+    # target_folder = './data/gen_data/argmax_baseline2_1days_folder/'
+
+    target_record = pd.concat([pd.read_csv(f) for f in glob.glob(target_folder+'*.csv')], ignore_index = True)
+
+    x_data = bins[1:]
+    y_data = []
+
+    for t_hour in range(24):
+        str_hour = str(t_hour) if t_hour > 9 else '0'+ str(t_hour)
+        target_chunk = target_record[target_record['te'].str.contains(' '+str_hour+':')]
+
+        y_data.append(show_distribution(target_chunk, bins))
+    
+    distribution_lineplot(x_data, y_data, x_label='bins', y_label='probability', title='conditioned distribution')
+    distribution_lineplot_inone(x_data, y_data, x_label='bins', y_label='probability', title='conditioned distribution')
 
 def vali_hourly(raw_ip_str, gen_ip_str, bins):
     rawdata = pd.read_csv(working_folder + raw_ip_str)
@@ -96,13 +126,13 @@ def vali_hourly(raw_ip_str, gen_ip_str, bins):
 def vali_as_a_whole(bins):
     source_folder = './data/raw_data/'
     target1_folder = './data/gen_data/baseline1_1days_folder/'
-    target2_folder = './data/gen_data/baseline2_1days_folder/'
+    target2_folder = './data/gen_data/baseline3_1days_folder/'
 
     source_record = pd.concat([pd.read_csv(f) for f in glob.glob(source_folder+'*.csv')], ignore_index = True)
     target1_record = pd.concat([pd.read_csv(f) for f in glob.glob(target1_folder+'*.csv')], ignore_index = True)
     target2_record = pd.concat([pd.read_csv(f) for f in glob.glob(target2_folder+'*.csv')], ignore_index = True)
 
-    x_data = ['KL(raw|baseline1)', 'KL(raw|baseline2)', 'KL(baselin1|baseline2)']
+    x_data = ['KL(raw|baseline1)', 'KL(raw|baseline3)', 'KL(baselin1|baseline3)']
     y_data = [[], [], []]
 
     for t_hour in range(24):   
@@ -165,6 +195,9 @@ if __name__ == "__main__":
             print(len(y_data), len(y_data[0]))
         
             boxplot(x_data, y_data, title='KL(100 raw ips || %s)' % ip2)
+
+    if config['VALIDATE']['conditioned_whole'] == 'True':
+        show_conditioned_distribution(bins)
 
     if config['VALIDATE']['hour_whole'] == 'True':
         vali_as_a_whole(bins)

@@ -12,7 +12,7 @@ if __name__ == "__main__":
         print('no instruction input.')
         sys.exit()
         
-    source_folder = './data/gen_data/baseline2_1days_folder/'
+    source_folder = './data/gen_data/baseline3_1days_folder/'
     # source_folder = './data/raw_data/'
     
     if '-flow' in sys.argv or '-all' in sys.argv:

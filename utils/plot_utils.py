@@ -60,6 +60,46 @@ def temporal_lineplot(x_data, y_data, x_label="", y_label="", title=""):
     ax.legend(loc=0, ncol=2)
     plt.show()
 
+def distribution_lineplot(x_data, y_data, x_label="", y_label="", title=""):
+    # Create the plot object
+    fig_row = 4
+    fig_col = 6
+    _, ax = plt.subplots(fig_row, fig_col)
+
+    # Plot the best fit line, set the linewidth (lw), color and
+    # transparency (alpha) of the line
+
+    for t in range(24):
+        fig_i = int(t/fig_col)
+        fig_j = int(t%fig_col)
+        print('try to plot %d %d', fig_i, fig_j)
+        ax[fig_i][fig_j].plot(x_data, y_data[t], lw = 2, alpha = 0.8, label=t)
+        ax[fig_i][fig_j].set_title("")
+        ax[fig_i][fig_j].set_xlabel(x_label)
+        ax[fig_i][fig_j].set_ylabel(y_label)
+        ax[fig_i][fig_j].legend(loc=0, ncol=2)
+        ax[fig_i][fig_j].set(ylim=(0, 0.1))
+
+    # Label the axes and provide a title
+    plt.show()
+
+def distribution_lineplot_inone(x_data, y_data, x_label="", y_label="", title=""):
+    # Create the plot object
+    _, ax = plt.subplots()
+
+    # Plot the best fit line, set the linewidth (lw), color and
+    # transparency (alpha) of the line
+
+    for t in range(24):
+        ax.plot(x_data, y_data[t], lw = 2, alpha = 0.8, label=t)
+      
+    # Label the axes and provide a title
+    ax.set_title(title)
+    ax.set_xlabel(x_label)
+    ax.set_ylabel(y_label)
+    ax.legend(loc=0, ncol=2)
+    plt.show()
+
 # def plot_source_distribution(value_list, fig_name='data_dist', range_=None, bins_=100,
 #         title_='Frequency of records of users' , x_label='users', y_label='number of records (rows)'):
 #     plt.style.use('bmh')

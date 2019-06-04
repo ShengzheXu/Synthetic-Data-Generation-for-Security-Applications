@@ -1,5 +1,6 @@
 from models.baselines import baseline1
 from models.baselines import baseline2
+from models.baseline3 import baseline3
 from datetime import datetime
 from datetime import timedelta
 from utils.config_utils import recieve_cmd_config
@@ -53,6 +54,10 @@ def model_prepare(original_date, sip, byt_log_train, time_delta_train, sip_train
         return meta_model
     elif baseline_choice == 'baseline2':
         meta_model = baseline2()
+        meta_model.fit(original_date, sip, byt_log_train, time_delta_train, sip_train, dip_train, byt1_log_train, final_teT_train, teT_df_col, bins)
+        return meta_model
+    elif baseline_choice == 'baseline3':
+        meta_model = baseline3()
         meta_model.fit(original_date, sip, byt_log_train, time_delta_train, sip_train, dip_train, byt1_log_train, final_teT_train, teT_df_col, bins)
         return meta_model
     else:
@@ -125,7 +130,7 @@ def gen_one(model1, for_whom):
     model1.reset_gen(for_whom)
 
     while True:
-        dep_info = [now_t, last_b] if baseline_choice == 'baseline2' else []
+        dep_info = [now_t, last_b] if baseline_choice == 'baseline2' or baseline_choice == 'baseline3' else []
         gen_date_obj, gen_te, gen_sip, gen_dip, gen_byt, gen_te_delta = model1.generate_one(dep_info)
         gen_data.append([gen_te, gen_sip, gen_dip, gen_byt, gen_te_delta])
         now_t = int(str(gen_te)[11:13])
@@ -180,6 +185,9 @@ if __name__ == "__main__":
                 model1.load_the_model()
             elif baseline_choice == 'baseline2':
                 model1 = baseline2()
+                model1.load_the_model()
+            elif baseline_choice == 'baseline3':
+                model1 = baseline3()
                 model1.load_the_model()
             else:
                 pass

@@ -319,11 +319,17 @@ class baseline2(baseline):
                 b1_list.append(df_b_1.size)
 
             # smooth & normalize them
-            smoothed_t_list = np.log(get_distribution_with_laplace_smoothing(t_list))
+            # smoothed_t_list = np.log(get_distribution_with_laplace_smoothing(t_list))
+            smoothed_t_list = get_distribution_with_laplace_smoothing(t_list)
+            smoothed_t_list  = smoothed_t_list / sum(smoothed_t_list)
+            smoothed_t_list = np.log(smoothed_t_list)
             for t in range(24):
                 p_T_B[interval][t] = smoothed_t_list[t]
 
-            smoothed_b1_list = np.log(get_distribution_with_laplace_smoothing(b1_list))
+            # smoothed_b1_list = np.log(get_distribution_with_laplace_smoothing(b1_list))
+            smoothed_b1_list = get_distribution_with_laplace_smoothing(b1_list)
+            smoothed_b1_list  = smoothed_b1_list / sum(smoothed_b1_list)
+            smoothed_b1_list = np.log(smoothed_b1_list)
             ith = 0
             for interval_1 in bins_name:
                 p_B1_B[interval][interval_1] = smoothed_b1_list[ith]
@@ -375,8 +381,8 @@ class baseline2(baseline):
             # print('==>', t,b_1,b1)
             normed_list = [self.learnt_p_B_gv_T_B1[t][b1][interval] for interval in self.bins_name_list]
             
-            print("check_sum", t, b1, sum(normed_list))
-            print(normed_list)
+            # print("check_sum", t, b1, sum(normed_list))
+            # print(normed_list)
             selected_B = np.random.choice(self.bins_name_list, p=normed_list)
             # selected_B = max(self.learnt_p_B_gv_T_B1[t][b1].items(), key=operator.itemgetter(1))[0]
             return np.random.uniform(selected_B.left, selected_B.right)
