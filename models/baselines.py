@@ -319,17 +319,17 @@ class baseline2(baseline):
                 b1_list.append(df_b_1.size)
 
             # smooth & normalize them
-            # smoothed_t_list = np.log(get_distribution_with_laplace_smoothing(t_list))
-            smoothed_t_list = get_distribution_with_laplace_smoothing(t_list)
-            smoothed_t_list  = smoothed_t_list / sum(smoothed_t_list)
-            smoothed_t_list = np.log(smoothed_t_list)
+            smoothed_t_list = np.log(get_distribution_with_laplace_smoothing(t_list))
+            # smoothed_t_list = get_distribution_with_laplace_smoothing(t_list)
+            # smoothed_t_list  = smoothed_t_list / sum(smoothed_t_list)
+            # smoothed_t_list = np.log(smoothed_t_list)
             for t in range(24):
                 p_T_B[interval][t] = smoothed_t_list[t]
 
-            # smoothed_b1_list = np.log(get_distribution_with_laplace_smoothing(b1_list))
-            smoothed_b1_list = get_distribution_with_laplace_smoothing(b1_list)
-            smoothed_b1_list  = smoothed_b1_list / sum(smoothed_b1_list)
-            smoothed_b1_list = np.log(smoothed_b1_list)
+            smoothed_b1_list = np.log(get_distribution_with_laplace_smoothing(b1_list))
+            # smoothed_b1_list = get_distribution_with_laplace_smoothing(b1_list)
+            # smoothed_b1_list  = smoothed_b1_list / sum(smoothed_b1_list)
+            # smoothed_b1_list = np.log(smoothed_b1_list)
             ith = 0
             for interval_1 in bins_name:
                 p_B1_B[interval][interval_1] = smoothed_b1_list[ith]
