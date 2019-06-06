@@ -1,5 +1,9 @@
 # Synthetic-Data-Generation-for-Security-Applications
 
+# Daily report & Meeting notes
+
+at [Here](documents/MeetingNote.md)
+
 ## data preparation
 
 use the link to download extracted raw data, processed data and the generated data. [[Dropbox](https://www.dropbox.com/s/uabnmy3b3b3ltna/data.zip?dl=0)]

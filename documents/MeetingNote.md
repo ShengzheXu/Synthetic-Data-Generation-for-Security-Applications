@@ -1,6 +1,14 @@
+# June 6th Thu plan
+
+1. design the NN model
+
+2. figure out the trend problem of figure 2.
+
 # June 4th Tue plan & discussion
 
 1. try smaller bins number.
+
+2. raw data trend is good.
 
 # June 3rd Mon plan
 
