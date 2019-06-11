@@ -216,8 +216,8 @@ class baseline2(baseline):
         add_likeli = 0
         user_order = 1
         gmm_pdf = lambda x: self.byt_model.score_samples(np.reshape([x], (-1, 1)))
-        cats_byt = pd.cut(given_data_byt.flatten(), self.bins)
-        cats_byt1 = pd.cut(given_data_byt_1.flatten(), self.bins)
+        cats_byt = pd.cut(given_data_byt.flatten(), self.bins, include_lowest=True)
+        cats_byt1 = pd.cut(given_data_byt_1.flatten(), self.bins, include_lowest=True)
         
         for id in range(0, len(given_data_byt)):
             # print(id, len(byt_log_train), len(byt_log_train[id]))
@@ -226,7 +226,8 @@ class baseline2(baseline):
                 print('%dth row, %dth user' % (id, user_order))
                 user_order += 1
                 id_byt_interval = cats_byt[id] #self.find_bin(given_data_byt[id][0])
-                p_b, _est_error = integrate.quad(gmm_pdf, id_byt_interval.left, id_byt_interval.right)
+                # p_b, _est_error = integrate.quad(gmm_pdf, id_byt_interval.left, id_byt_interval.right)
+                p_b = self.learnt_p_B[id_byt_interval]
                 add_likeli += p_b
                 print('marginal likelihood', add_likeli, 'from', given_data_byt[0][0], '=>', id_byt_interval)
             # cal rest of the joint likelihood for learnt_p_B_gv_T_B1[t][interval_1][interval]
@@ -234,7 +235,7 @@ class baseline2(baseline):
                 id_byt = cats_byt[id] # self.find_bin(given_data_byt[id][0])
                 id_byt_1 = cats_byt1[id] # self.find_bin(given_data_byt_1[id][0])
                 id_t = given_data_T[id][0]
-                # print('calcing lileli, %dth row, t:'%id, id_t, given_data_byt[id][0], "=>", id_byt, ";", given_data_byt_1[id][0], "=>", id_byt_1)
+                print('calcing lileli, %dth row, t:'%id, id_t, given_data_byt[id][0], "=>", id_byt, ";", given_data_byt_1[id][0], "=>", id_byt_1)
                 add_likeli += np.log(self.learnt_p_B_gv_T_B1[id_t][id_byt_1][id_byt])
         
         log_likeli = add_likeli/len(given_data_byt)
@@ -247,6 +248,8 @@ class baseline2(baseline):
         [now_t, last_b] = dep_info
         gen_byt = self.select_bayesian_output(now_t, last_b)
         gen_byt = int(np.exp(gen_byt))
+        if gen_byt == 0:
+            gen_byt = 1
         
         return gen_date_obj, gen_te, gen_sip, gen_dip, gen_byt, gen_te_delta
 
@@ -262,6 +265,8 @@ class baseline2(baseline):
             # print('looking at', mid, mid_bin ,"when l:%d r:%d" % (l, r))
             if mid_bin.left < byt_number <= mid_bin.right:
                 return mid_bin
+            if mid == 0 and byt_number == mid_bin.left:
+                return mid_bin
             if byt_number > mid_bin.right:
                 l = mid + 1
             else: # byt_number <= mid_bin.left:
@@ -276,15 +281,28 @@ class baseline2(baseline):
     #     area = np.sum(fx)*(b-a)/N
     #     return area
 
+    def debug_show(self, title, x_data, pr_list):
+        import matplotlib.pyplot as plt
+        _, ax = plt.subplots()
+
+        for ith in range(len(pr_list)):  
+            ax.plot(x_data, pr_list[ith], lw = 2, alpha = 0.8)
+        
+        ax.set_title(title)
+        ax.set_xlabel('bins')
+        ax.set_ylabel('pr')
+        ax.legend(loc=0, ncol=2)
+        plt.show()
+
     def build_bayesian_dep(self, all_record, log_byt_col, log_byt_1_col, clf):
         print(self.bins)
-        cats = pd.cut(log_byt_col, self.bins)
+        cats = pd.cut(log_byt_col, self.bins, include_lowest=True)
         print('bytlen', len(log_byt_col))
         print('dfcollen', all_record.shape)
 
         all_record['bytBins'] = cats
 
-        cats = pd.cut(log_byt_1_col, self.bins)
+        cats = pd.cut(log_byt_1_col, self.bins, include_lowest=True)
         all_record['byt-1Bins'] = cats
 
         pr = all_record['bytBins'].value_counts()/all_record['bytBins'].size
@@ -298,45 +316,98 @@ class baseline2(baseline):
             p_T_B[interval] = {}
         
         from utils.distribution_utils import get_distribution_with_laplace_smoothing
+        import matplotlib.pyplot as plt
 
         for interval in bins_name:
             # print('now working on:', interval)
-            gmm_pdf = lambda x: clf.score_samples(np.reshape([x], (-1, 1)))
-            p_B[interval], _est_error = integrate.quad(gmm_pdf, interval.left, interval.right)
+            gmm_pdf = lambda x: np.exp(clf.score_samples(np.reshape([x], (-1, 1))))
+            p_B[interval], _est_error = np.log(integrate.quad(gmm_pdf, interval.left, interval.right))
             df = all_record[all_record['bytBins'] == interval]
-
+            # p_B[interval] = len(df.index) / len(all_record.index)
+            print("preprocessing", interval, len(df.index), len(all_record.index))
             t_list = []
             b1_list = []
             for t in range(24):
                 df_t = df[df['teT'] == t]
                 # print('t', t, df_t.size, df.size)
                 # p_T_B[interval][t] = df_t.size / df.size
-                t_list.append(df_t.size)
+                t_list.append(len(df_t.index))
 
             for interval_1 in bins_name:
                 df_b_1 = df[df['byt-1Bins'] == interval_1]
                 # p_B1_B[interval][interval_1] = df_b_1.size / df.size
-                b1_list.append(df_b_1.size)
+                b1_list.append(len(df_b_1.index))
 
             # smooth & normalize them
             smoothed_t_list = np.log(get_distribution_with_laplace_smoothing(t_list))
-            # smoothed_t_list = get_distribution_with_laplace_smoothing(t_list)
-            # smoothed_t_list  = smoothed_t_list / sum(smoothed_t_list)
-            # smoothed_t_list = np.log(smoothed_t_list)
+            
+            if not os.path.exists('debugging/t_given_b/'):
+                os.makedirs('debugging/t_given_b/')
+            _, ax1 = plt.subplots()
+            ax2 = ax1.twinx()
+            ax1.plot(range(24), t_list, 'g-', label='propotion')
+            ax2.plot(range(24), np.exp(smoothed_t_list), 'b-', label='smoothed')        
+            # ax.legend(loc=0, ncol=2)
+            ax1.set_title('b=%s, sumto%f' % (interval, sum(np.exp(smoothed_t_list))))
+            ax1.set_xlabel('hour T')
+            ax1.set_ylabel('p(T|B) propotion', color='g')
+            ax2.set_ylabel('p(T|B) smoothed', color='b')
+            plt.savefig('debugging/t_given_b/b=%s.png' % interval)
+            plt.close()
+
             for t in range(24):
                 p_T_B[interval][t] = smoothed_t_list[t]
 
             smoothed_b1_list = np.log(get_distribution_with_laplace_smoothing(b1_list))
-            # smoothed_b1_list = get_distribution_with_laplace_smoothing(b1_list)
-            # smoothed_b1_list  = smoothed_b1_list / sum(smoothed_b1_list)
-            # smoothed_b1_list = np.log(smoothed_b1_list)
+
+            if not os.path.exists('debugging/b1_given_b/'):
+                os.makedirs('debugging/b1_given_b/')
+            _, ax1 = plt.subplots()
+            ax2 = ax1.twinx()
+            ax1.plot(range(len(bins_name)), b1_list, 'g-', label='propotion')
+            ax2.plot(range(len(bins_name)), np.exp(smoothed_b1_list), 'b-', label='smoothed')        
+            # ax.legend(loc=0, ncol=2)
+            ax1.set_title('b=%s, sumto%f' % (interval, sum(np.exp(smoothed_b1_list))))
+            ax1.set_xlabel('b-1')
+            ax1.set_ylabel('p(B-1|B) propotion', color='g')
+            ax2.set_ylabel('p(B-1|B) smoothed', color='b')
+            plt.savefig('debugging/b1_given_b/b=%s.png' % interval)
+            plt.close()
+
             ith = 0
             for interval_1 in bins_name:
                 p_B1_B[interval][interval_1] = smoothed_b1_list[ith]
                 ith += 1
                 # print('smoothed', t, interval_1, learnt_p_B_gv_T_B1[t][interval_1])
-
-        print('testing:', p_B)
+        self.learnt_p_B = p_B
+        print('debugging======>\n', bins_name)
+        yy = [[p_B[interval] for interval in bins_name]]
+        print('yy=====>\n', sum(yy[0]))
+        self.debug_show('p(B)', [x.left for x in self.bins_name_list], yy)
+        yy = []
+        if not os.path.exists('debugging/t_given_b_times_b/'):
+            os.makedirs('debugging/t_given_b_times_b/')
+        for t in range(24):
+            yy_t = []
+            for interval in bins_name:
+                yy_t.append(p_T_B[interval][t] + p_B[interval])
+            
+            ln_sum = log_sum_exp_trick(yy_t)
+            real_sum = np.exp(ln_sum)
+            normed_list = np.exp(yy_t) / real_sum
+            _, ax1 = plt.subplots()
+            ax2 = ax1.twinx()
+            ax1.plot(range(len(bins_name)), np.exp(yy_t), 'g-', label='propotion')
+            ax2.plot(range(len(bins_name)), normed_list, 'b-', label='normalized')        
+            
+            ax1.set_title('b=%s, sumto%f -> %f' % (interval, sum(np.exp(yy_t)), sum(normed_list)))
+            ax1.set_xlabel('b-1')
+            ax1.set_ylabel('p(B-1|B) propotion', color='g')
+            ax2.set_ylabel('p(B-1|B) smoothed', color='b')
+            plt.savefig('debugging/t_given_b_times_b/t=%s.png' % t)
+            plt.close()
+        
+        # print('testing:', p_B)
         learnt_p_B_gv_T_B1 = {}
         for t in range(24):
             print("learning learnt_p_B_gv_T_B1 table: t = %d" % t)
@@ -405,13 +476,16 @@ class baseline2(baseline):
             np.save(self.params_dir+"baseline2table/table_for_t%d.npy" % t, learnt_nparray)
             del learnt_nparray
             gc.collect()
+        np.save(self.params_dir+"baseline2marginal.npy", np.array(self.learnt_p_B))
         print("<=====Baseline2 Parameters Saved")
 
     def load_the_model(self):
         self.load_common_params()
         self.cached_byt, self.byt_model = self._load_gmm("byt")
         self.learnt_p_B_gv_T_B1 = {}
+        self.learnt_p_B = {}
     
+        self.learnt_p_B = np.load(self.params_dir+"baseline2marginal.npy").tolist()
         for t in range(24): 
             self.learnt_p_B_gv_T_B1[t] = np.load(self.params_dir+"baseline2table/table_for_t%d.npy" % t).tolist()
         # print(self.learnt_p_B_gv_T_B1[0])

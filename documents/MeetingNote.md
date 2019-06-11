@@ -1,3 +1,29 @@
+# June 10th plan
+
+1. debug for baseline2.
+
+2. question:
+    pixelcnn model the dependency based on human-defined dependency (spatial relationship between the pixels)
+    in our case, since the dependency in the tabular data is not a "clear and intuitive" one, should we still build it in this way.
+
+# June 8th, 9th plan
+
+read papers and pytorch tutorials.
+
+picture with CNN, picture with RNN
+text with RNN, text with CNN
+
+# June 7th Fri discussion
+
+1. T -> hour of the day / date of the week / someday previous week
+
+2. d_t: -> dependent on other features.
+
+3. KL divergency strange -> try to use another metric genson_shanon divergence which is a normalized one.
+
+4. about normalization: sum up approach should be the same as the formular.
+    ![normalization](June10/normalization.png)
+
 # June 6th Thu plan
 
 1. design the NN model

@@ -83,7 +83,7 @@ def distribution_lineplot(x_data, y_data, x_label="", y_label="", title=""):
     # Label the axes and provide a title
     plt.show()
 
-def distribution_lineplot_inone(x_data, y_data, x_label="", y_label="", title=""):
+def distribution_lineplot_in_one(x_data, y_data, x_label="", y_label="", title=""):
     # Create the plot object
     _, ax = plt.subplots()
 

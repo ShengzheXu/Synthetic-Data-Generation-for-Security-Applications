@@ -106,7 +106,7 @@ def decide_bin_scale(config, data_array):
     #     floor += bin_size
 
     print('bin_size', bin_width, 'num', bin_number, 'min', minn, 'max', maxn)
-    bins = ['0']
+    bins = []
     floor = minn-np.finfo(float).eps
     ceil = maxn
     while floor < (ceil + bin_width):

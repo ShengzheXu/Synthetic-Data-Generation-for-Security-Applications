@@ -8,7 +8,7 @@ def get_distribution_with_laplace_smoothing(a_count):
     for component in a_count:
         adj_component = (component + k) / (sum_count + tot_k)
         p.append(adj_component)
-    # print('laplace_smoothing:\n', a_count, '\n', p)
+    print('laplace_smoothing:\n', len(a_count), sum(a_count), sum(p), max(p), min(p))
     return p
 
 def log_sum_exp_trick(ns):

@@ -7,7 +7,7 @@ from utils.config_utils import recieve_cmd_config
 from utils.plot_utils import boxplot
 from utils.plot_utils import temporal_lineplot
 from utils.plot_utils import distribution_lineplot
-from utils.plot_utils import distribution_lineplot_inone
+from utils.plot_utils import distribution_lineplot_in_one
 from models.baselines import baseline1
 from utils.distribution_utils import get_distribution_with_laplace_smoothing
 import glob
@@ -65,11 +65,29 @@ def real_vali_KL(rawdata, gendata, bins):
 
     return KL
 
+def real_vali_JS(rawdata, gendata, bins):
+    values1 = list(np.log(rawdata.byt))
+    values2 = list(np.log(gendata.byt))
+
+    cats1 = pd.cut(values1, bins)
+    pr1 = list(cats1.value_counts())
+    cats2 = pd.cut(values2, bins)
+    pr2 = list(cats2.value_counts())
+
+    pk = get_distribution_with_laplace_smoothing(pr1)
+    qk = get_distribution_with_laplace_smoothing(pr2)
+    print(len(pk), len(qk))
+    avgk = [(x+y)/2 for x,y in zip(pk, qk)]
+
+    JS = (scipy.stats.entropy(pk, avgk) + scipy.stats.entropy(qk, avgk)) / 2
+
+    return JS
+
 def vali_one(raw_ip_str, gen_ip_str, bins):
     rawdata = pd.read_csv(working_folder + raw_ip_str)
     gendata = pd.read_csv(working_folder + gen_ip_str)
 
-    KL = real_vali_KL(rawdata, gendata, bins)
+    KL = real_vali_JS(rawdata, gendata, bins)
 
     print(','.join([raw_ip_str, gen_ip_str, str(KL)]))
     return KL
@@ -101,7 +119,7 @@ def show_conditioned_distribution(bins):
         y_data.append(show_distribution(target_chunk, bins))
     
     distribution_lineplot(x_data, y_data, x_label='bins', y_label='probability', title='conditioned distribution')
-    distribution_lineplot_inone(x_data, y_data, x_label='bins', y_label='probability', title='conditioned distribution')
+    distribution_lineplot_in_one(x_data, y_data, x_label='bins', y_label='probability', title='conditioned distribution')
 
 def vali_hourly(raw_ip_str, gen_ip_str, bins):
     rawdata = pd.read_csv(working_folder + raw_ip_str)
@@ -117,22 +135,23 @@ def vali_hourly(raw_ip_str, gen_ip_str, bins):
         # print('checking:', T, hour_str)
         raw_chunk = rawdata[rawdata['te'].str.contains(' '+hour_str+':')]
         gen_chunk = gendata[gendata['te'].str.contains(' '+hour_str+':')]
-        KL = real_vali_KL(raw_chunk, gen_chunk, bins)
-        print(','.join(['For %d hour' % T, raw_ip_str, gen_ip_str, str(KL)]))
-        rtn.append(KL)
+        # KL = real_vali_KL(raw_chunk, gen_chunk, bins)
+        JS = real_vali_JS(raw_chunk, gen_chunk, bins)
+        print(','.join(['For %d hour' % T, raw_ip_str, gen_ip_str, str(JS)]))
+        rtn.append(JS)
 
     return rtn
 
 def vali_as_a_whole(bins):
     source_folder = './data/raw_data/'
     target1_folder = './data/gen_data/baseline1_1days_folder/'
-    target2_folder = './data/gen_data/baseline3_1days_folder/'
+    target2_folder = './data/gen_data/baseline2_1days_folder/'
 
     source_record = pd.concat([pd.read_csv(f) for f in glob.glob(source_folder+'*.csv')], ignore_index = True)
     target1_record = pd.concat([pd.read_csv(f) for f in glob.glob(target1_folder+'*.csv')], ignore_index = True)
     target2_record = pd.concat([pd.read_csv(f) for f in glob.glob(target2_folder+'*.csv')], ignore_index = True)
 
-    x_data = ['KL(raw|baseline1)', 'KL(raw|baseline3)', 'KL(baselin1|baseline3)']
+    x_data = ['JS(raw|baseline1)', 'JS(raw|baseline2)', 'JS(baselin1|baseline2)']
     y_data = [[], [], []]
 
     for t_hour in range(24):   
@@ -141,9 +160,9 @@ def vali_as_a_whole(bins):
         target1_chunk = target1_record[target1_record['te'].str.contains(' '+str_hour+':')]
         target2_chunk = target2_record[target2_record['te'].str.contains(' '+str_hour+':')]
 
-        y_data[0].append(real_vali_KL(source_chunk, target1_chunk, bins))
-        y_data[1].append(real_vali_KL(source_chunk, target2_chunk, bins))
-        y_data[2].append(real_vali_KL(target1_chunk, target2_chunk, bins))
+        y_data[0].append(real_vali_JS(source_chunk, target1_chunk, bins))
+        y_data[1].append(real_vali_JS(source_chunk, target2_chunk, bins))
+        y_data[2].append(real_vali_JS(target1_chunk, target2_chunk, bins))
     
     temporal_lineplot(x_data, y_data, x_label='hour', y_label='KL divergency', title='3 pairs KL divergency compare')
 
