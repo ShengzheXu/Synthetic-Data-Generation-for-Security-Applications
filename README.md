@@ -74,15 +74,12 @@ If downloaded data in this way, you can go to step 4 directly.
 
     Theoretically, the very first sample to be generated should be the marginal distribution P(B)
 
-## data usage
+## summer timeline
 
-    # 1366940, '42.219.153.7'      
-    # 1342589, '42.219.153.89'     
-    # 1210025, '42.219.155.56'
-    # 1175793, '42.219.155.26'
-    # 1081080, '42.219.159.194'
-    # 1046866, '42.219.152.249'
-    # 944492, '42.219.159.82'
-    # 888781, '42.219.159.92'
-    # 771349, '42.219.159.94'
-    # 637608, '42.219.158.226' 
+| Date and Time       | Plan                         |
+| :------------------ | :--------------------------- |
+| 5/21- 6/7 (2 weeks) | I should finally make the dataset characteristics clear and should already build the first demo for our own approach (NN). |
+| 6/8-7/1 (3 weeks)   | refine the NN model and evaluate. |
+| 7/1-7/15(2 weeks)   | add novel features to our model. |
+| 7/15-7/31(2 weeks)  | implement simple prove-of-applications for our approach. |
+| 8/1-9/1 (4 weeks)   | writing for the paper and supplement if the experiments not enough. |
