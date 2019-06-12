@@ -10,6 +10,7 @@ from utils.plot_utils import distribution_lineplot
 from utils.plot_utils import distribution_lineplot_in_one
 from models.baselines import baseline1
 from utils.distribution_utils import get_distribution_with_laplace_smoothing
+from utils.distribution_utils import get_distribution
 import glob
 
 def KLc(p, q):
@@ -65,6 +66,36 @@ def real_vali_KL(rawdata, gendata, bins):
 
     return KL
 
+def draw_3_distribution(name, rawdata, gen1data, gen2data, bins):
+    import matplotlib.pyplot as plt
+    values1 = list(np.log(rawdata.byt))
+    values2 = list(np.log(gen1data.byt))
+    values3 = list(np.log(gen2data.byt))
+
+    cats1 = pd.cut(values1, bins)
+    pr1 = list(cats1.value_counts())
+    cats2 = pd.cut(values2, bins)
+    pr2 = list(cats2.value_counts())
+    cats3 = pd.cut(values3, bins)
+    pr3 = list(cats3.value_counts())
+
+    pk = get_distribution(pr1)
+    qk = get_distribution(pr2)
+    q2k = get_distribution(pr3)
+    
+    _, ax1 = plt.subplots()
+    ax1.plot(range(len(bins)-1), pk, label='real')
+    ax1.plot(range(len(bins)-1), qk, label='baseline1')
+    ax1.plot(range(len(bins)-1), q2k, label='baseline2')
+
+    ax1.set_title(name)
+    ax1.set_xlabel('bin')
+    ax1.set_ylabel('pr')
+    ax1.legend(loc=0, ncol=2)
+    plt.savefig('figures/611/post/%s.png' % name)
+    plt.close()
+
+
 def real_vali_JS(rawdata, gendata, bins):
     values1 = list(np.log(rawdata.byt))
     values2 = list(np.log(gendata.byt))
@@ -74,9 +105,9 @@ def real_vali_JS(rawdata, gendata, bins):
     cats2 = pd.cut(values2, bins)
     pr2 = list(cats2.value_counts())
 
-    pk = get_distribution_with_laplace_smoothing(pr1)
-    qk = get_distribution_with_laplace_smoothing(pr2)
-    print(len(pk), len(qk))
+    pk = get_distribution(pr1)
+    qk = get_distribution(pr2)
+    # print(len(pk), len(qk))
     avgk = [(x+y)/2 for x,y in zip(pk, qk)]
 
     JS = (scipy.stats.entropy(pk, avgk) + scipy.stats.entropy(qk, avgk)) / 2
@@ -151,6 +182,10 @@ def vali_as_a_whole(bins):
     target1_record = pd.concat([pd.read_csv(f) for f in glob.glob(target1_folder+'*.csv')], ignore_index = True)
     target2_record = pd.concat([pd.read_csv(f) for f in glob.glob(target2_folder+'*.csv')], ignore_index = True)
 
+    print("real vs baseline1:", real_vali_JS(source_record, target1_record, bins))
+    print("real vs baseline2:", real_vali_JS(source_record, target2_record, bins))
+    draw_3_distribution('whole', source_record, target1_record, target2_record, bins)
+
     x_data = ['JS(raw|baseline1)', 'JS(raw|baseline2)', 'JS(baselin1|baseline2)']
     y_data = [[], [], []]
 
@@ -159,12 +194,13 @@ def vali_as_a_whole(bins):
         source_chunk = source_record[source_record['te'].str.contains(' '+str_hour+':')]
         target1_chunk = target1_record[target1_record['te'].str.contains(' '+str_hour+':')]
         target2_chunk = target2_record[target2_record['te'].str.contains(' '+str_hour+':')]
+        draw_3_distribution(str(t_hour), source_chunk, target1_chunk, target2_chunk, bins)
 
         y_data[0].append(real_vali_JS(source_chunk, target1_chunk, bins))
         y_data[1].append(real_vali_JS(source_chunk, target2_chunk, bins))
         y_data[2].append(real_vali_JS(target1_chunk, target2_chunk, bins))
     
-    temporal_lineplot(x_data, y_data, x_label='hour', y_label='KL divergency', title='3 pairs KL divergency compare')
+    temporal_lineplot(x_data, y_data, x_label='hour', y_label='JS divergency', title='3 pairs JS divergency compare')
 
 
 if __name__ == "__main__":
