@@ -382,3 +382,13 @@ train: 100users,1days,baseline2 ==> train likelihood:-4.509588895275743 ==> outg
 train: 100users,1days,baseline2 ==> train likelihood:-4.509588895275743 ==> outgoing prob:0.4742624833403745 ==> time:6.183333333333334mins
 train: 100users,1days,baseline2 ==> train likelihood:-3.946459424160316 ==> outgoing prob:0.4742624833403745 ==> time:19.7mins
 generating: 100users,1days,baseline2 ==> time:60.9mins
+generating: 100users,1days,baseline1 ==> time:10.25mins
+generating: 100users,1days,baseline1 ==> time:9.9mins
+generating: 100users,1days,baseline1 ==> time:8.966666666666667mins
+generating: 100users,1days,baseline1 ==> time:7.966666666666667mins
+generating: 100users,1days,baseline1 ==> time:8.166666666666666mins
+generating: 100users,1days,baseline1 ==> time:7.283333333333333mins
+generating: 100users,1days,baseline1 ==> time:7.783333333333333mins
+generating: 100users,1days,baseline1 ==> time:8.2mins
+generating: 100users,1days,baseline1 ==> time:9.683333333333334mins
+generating: 100users,1days,baseline1 ==> time:9.8mins

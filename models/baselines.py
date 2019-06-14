@@ -215,7 +215,7 @@ class baseline2(baseline):
     def cal_likelihood(self, given_data_byt, given_data_byt_1, given_data_T):
         add_likeli = 0
         user_order = 1
-        gmm_pdf = lambda x: self.byt_model.score_samples(np.reshape([x], (-1, 1)))
+        # gmm_pdf = lambda x: self.byt_model.score_samples(np.reshape([x], (-1, 1)))
         cats_byt = pd.cut(given_data_byt.flatten(), self.bins, include_lowest=True)
         cats_byt1 = pd.cut(given_data_byt_1.flatten(), self.bins, include_lowest=True)
         

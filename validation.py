@@ -185,7 +185,7 @@ def vali_as_a_whole(bins):
 
     print("real vs baseline1:", real_vali_JS(source_record, target1_record, bins))
     print("real vs baseline2:", real_vali_JS(source_record, target2_record, bins))
-    draw_3_distribution('whole', source_record, target1_record, target2_record, bins)
+    # draw_3_distribution('whole', source_record, target1_record, target2_record, bins)
 
     x_data = ['JS(raw|baseline1)', 'JS(raw|baseline2)'] #, 'JS(baselin1|baseline2)']
     y_data = [[], []] #, []]
@@ -202,7 +202,13 @@ def vali_as_a_whole(bins):
         #y_data[2].append(real_vali_JS(target1_chunk, target2_chunk, bins))
     
     average1 = sum(y_data[0])/len(y_data[0])
-    average2 = sum(y_data[1])/len(y_data[2])
+    average2 = sum(y_data[1])/len(y_data[1])
+    
+    my_formatted_list = [ '%.3f' % elem for elem in y_data[0] ]
+    print("baseline1", my_formatted_list)
+    
+    my_formatted_list = [ '%.3f' % elem for elem in y_data[1] ]
+    print("baseline2", my_formatted_list)
     
     print("average hour-conditioned JS:\nJS(real||baseline1):%f\nJS(real||baseline2):%f\n" % (average1, average2))
     temporal_lineplot(x_data, y_data, x_label='hour', y_label='JS divergency', title='3 pairs JS divergency compare')

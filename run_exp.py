@@ -12,7 +12,7 @@ import gc
 import sys
 import os
 
-np.random.seed(131)
+# np.random.seed(131)
 user_list = []
 baseline_choice = 'baseline1'
 day_number = 1

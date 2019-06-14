@@ -12,7 +12,8 @@ if __name__ == "__main__":
         print('no instruction input.')
         sys.exit()
         
-    source_folder = './data/gen_data/baseline2_1days_folder/'
+    # source_folder = './data/gen_data/baseline2_1days_folder/'
+    source_folder = './data/gen_data/5times/'
     # source_folder = './data/raw_data/'
     
     if '-flow' in sys.argv or '-all' in sys.argv:
@@ -32,8 +33,14 @@ if __name__ == "__main__":
 
     if '-bytperflow' in sys.argv or '-all' in sys.argv:
         print('reach show raw_data')
-
-        all_record = pd.concat([pd.read_csv(f) for f in glob.glob(source_folder+'*.csv')], ignore_index = True)
+        # ll = []
+        # for i in range(1,6):
+        #     ll += [pd.read_csv(f) for f in glob.glob(source_folder+'5times%d_baseline1_1days_folder/*.csv'%i)]
+        # print("lenlen", len(ll))
+        # all_record = pd.concat(ll, ignore_index = True)
+        
+        all_record = pd.concat([pd.read_csv(f) for f in glob.glob(source_folder+'5times%d_baseline1_1days_folder/*.csv'%5)], ignore_index = True)
+        # all_record = pd.concat([pd.read_csv(f) for f in glob.glob(source_folder+'*.csv')], ignore_index = True)
 
         x_data = [source_folder]
         y_data = [[]]
@@ -43,7 +50,7 @@ if __name__ == "__main__":
             chunk = all_record[all_record['te'].str.contains(' '+str_hour+':')]
             y_data[0].append(sum(np.log(chunk['byt'].values.tolist()))/len(chunk.index))
         
-        plot_utils.temporal_lineplot(x_data, y_data, x_label="hour", y_label="#byt", title="average #byt per flow distribution over 100 users", 8.0)
+        plot_utils.temporal_lineplot(x_data, y_data, x_label="hour", y_label="#byt", title="average #byt per flow distribution over 100 users")#, lim=8.0)
 
     if '-byttotal' in sys.argv or '-all' in sys.argv:
         print('reach show raw_data')
