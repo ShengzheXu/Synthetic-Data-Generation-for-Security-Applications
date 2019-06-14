@@ -1,3 +1,37 @@
+# June 14 plan & discussion
+
+1. run baseline1 5 repeat experiments
+
+2. refine the likelihood calculation
+
+# June 13 plan
+
+Do 1-4 work in the discussion, and read paper to prepare 5-7
+
+1. do fixed ylim for show #bytperflow & hour-conditioned distribution
+
+2. implement for calculate average time-conditioned JS
+
+# June 12 discussion
+
+Discussion
+
+1. make y axis the same for all
+
+2. repeat 5/10 times baseline1 to check whether there is temporal behaviour.
+
+3. overall JS: baseline1 can better than baseline2
+   average time-conditioned JS: baseline2 should be better
+
+4. likelihood. Write down the likelihood formula.
+   Because since real data shows temporal behaviour, the baseline2 joint distribution should be larger.
+
+5. for our design: each feature should be one word -> and has a embedding.
+
+6. to find paper about text autoregressive model.
+
+7. read compare CNN/RNN temporal paper.
+
 # June 10th plan
 
 1. debug for baseline2.

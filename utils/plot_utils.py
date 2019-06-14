@@ -39,7 +39,7 @@ def boxplot(x_data, y_data, base_color="cornflowerblue", median_color="darkorang
     # ax.set(ylim=(0, 100))
     plt.show()
 
-def temporal_lineplot(x_data, y_data, x_label="", y_label="", title=""):
+def temporal_lineplot(x_data, y_data, x_label="", y_label="", title="", lim=None):
     # Create the plot object
     _, ax = plt.subplots()
 
@@ -58,6 +58,8 @@ def temporal_lineplot(x_data, y_data, x_label="", y_label="", title=""):
     ax.set_xlabel(x_label)
     ax.set_ylabel(y_label)
     ax.legend(loc=0, ncol=2)
+    if lim is not None:
+        ax.set(ylim=(0, lim))
     plt.show()
 
 def distribution_lineplot(x_data, y_data, x_label="", y_label="", title=""):

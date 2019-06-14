@@ -43,7 +43,7 @@ if __name__ == "__main__":
             chunk = all_record[all_record['te'].str.contains(' '+str_hour+':')]
             y_data[0].append(sum(np.log(chunk['byt'].values.tolist()))/len(chunk.index))
         
-        plot_utils.temporal_lineplot(x_data, y_data, x_label="hour", y_label="#byt", title="average #byt per flow distribution over 100 users")
+        plot_utils.temporal_lineplot(x_data, y_data, x_label="hour", y_label="#byt", title="average #byt per flow distribution over 100 users", 8.0)
 
     if '-byttotal' in sys.argv or '-all' in sys.argv:
         print('reach show raw_data')

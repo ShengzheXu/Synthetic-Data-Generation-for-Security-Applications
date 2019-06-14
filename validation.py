@@ -92,6 +92,7 @@ def draw_3_distribution(name, rawdata, gen1data, gen2data, bins):
     ax1.set_xlabel('bin')
     ax1.set_ylabel('pr')
     ax1.legend(loc=0, ncol=2)
+    ax1.set(ylim=(0, 0.20))
     plt.savefig('figures/611/post/%s.png' % name)
     plt.close()
 
@@ -186,8 +187,8 @@ def vali_as_a_whole(bins):
     print("real vs baseline2:", real_vali_JS(source_record, target2_record, bins))
     draw_3_distribution('whole', source_record, target1_record, target2_record, bins)
 
-    x_data = ['JS(raw|baseline1)', 'JS(raw|baseline2)', 'JS(baselin1|baseline2)']
-    y_data = [[], [], []]
+    x_data = ['JS(raw|baseline1)', 'JS(raw|baseline2)'] #, 'JS(baselin1|baseline2)']
+    y_data = [[], []] #, []]
 
     for t_hour in range(24):   
         str_hour = str(t_hour) if t_hour > 9 else '0'+ str(t_hour)
@@ -198,8 +199,12 @@ def vali_as_a_whole(bins):
 
         y_data[0].append(real_vali_JS(source_chunk, target1_chunk, bins))
         y_data[1].append(real_vali_JS(source_chunk, target2_chunk, bins))
-        y_data[2].append(real_vali_JS(target1_chunk, target2_chunk, bins))
+        #y_data[2].append(real_vali_JS(target1_chunk, target2_chunk, bins))
     
+    average1 = sum(y_data[0])/len(y_data[0])
+    average2 = sum(y_data[1])/len(y_data[2])
+    
+    print("average hour-conditioned JS:\nJS(real||baseline1):%f\nJS(real||baseline2):%f\n" % (average1, average2))
     temporal_lineplot(x_data, y_data, x_label='hour', y_label='JS divergency', title='3 pairs JS divergency compare')
 
 
