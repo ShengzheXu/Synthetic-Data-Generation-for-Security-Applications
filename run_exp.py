@@ -50,7 +50,7 @@ def data_prepare(ip_str, sample_flag):
 def model_prepare(original_date, sip, byt_log_train, time_delta_train, sip_train, dip_train, byt1_log_train=None, final_teT_train=None, teT_df_col=None):
     if baseline_choice == 'baseline1':
         meta_model = baseline1()
-        meta_model.fit(original_date, sip, byt_log_train, time_delta_train, sip_train, dip_train)
+        meta_model.fit(original_date, sip, byt_log_train, time_delta_train, sip_train, dip_train, bins)
         return meta_model
     elif baseline_choice == 'baseline2':
         meta_model = baseline2()

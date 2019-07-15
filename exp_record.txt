@@ -392,3 +392,11 @@ generating: 100users,1days,baseline1 ==> time:7.783333333333333mins
 generating: 100users,1days,baseline1 ==> time:8.2mins
 generating: 100users,1days,baseline1 ==> time:9.683333333333334mins
 generating: 100users,1days,baseline1 ==> time:9.8mins
+generating: 100users,1days,baseline2 ==> time:37.2mins
+generating: 100users,1days,baseline2 ==> time:37.25mins
+generating: 100users,1days,baseline2 ==> time:40.11666666666667mins
+generating: 100users,1days,baseline2 ==> time:35.65mins
+generating: 100users,1days,baseline2 ==> time:710.7666666666667mins
+train: 100users,1days,baseline3 ==> train likelihood:-4.831568181027263 ==> outgoing prob:0.4742624833403745 ==> time:8.0mins
+generating: 100users,1days,baseline3 ==> time:30.316666666666666mins
+train: 100users,1days,baseline1 ==> train likelihood:-4.888773767067203 ==> outgoing prob:0.4742624833403745 ==> time:3.716666666666667mins

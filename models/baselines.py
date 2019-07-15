@@ -166,9 +166,10 @@ class baseline1(baseline):
         super().__init__()
         self.byt_model = None
     
-    def fit(self, start_date=None, sip=None, byt_log_train=None, time_delta_train=None, sip_train=None, dip_train=None):
+    def fit(self, start_date=None, sip=None, byt_log_train=None, time_delta_train=None, sip_train=None, dip_train=None, bins=None):
         super().fit(sip, start_date, time_delta_train, sip_train, dip_train)
         
+        self.bins = bins
         self.byt_model = mixture.GaussianMixture(n_components=7, covariance_type='full').fit(byt_log_train)
         self.cached_byt = cached_model(self.byt_model)
         self.cal_likelihood(byt_log_train)
@@ -177,8 +178,24 @@ class baseline1(baseline):
         log_likeli = self.byt_model.score(given_data)
         logprob = self.byt_model.score_samples(given_data)
         add_likeli = sum(logprob)
-        print('likelihood:', add_likeli, add_likeli/len(logprob))
+        print('sys-calc likelihood:', log_likeli, add_likeli, add_likeli/len(logprob))
         self.likelihood = log_likeli
+        
+        gmm_pdf = lambda x: np.exp(self.byt_model.score_samples(np.reshape([x], (-1, 1))))
+        cats_byt = pd.cut(given_data.flatten(), self.bins, include_lowest=True)
+        bin_likeli = 0
+        dp = {}
+        for id in range(0, len(given_data)):
+            id_byt_interval = cats_byt[id]
+            if id_byt_interval in dp:
+                p_b = dp[id_byt_interval]
+            else:
+                p_b, _est_error = np.log(integrate.quad(gmm_pdf, id_byt_interval.left, id_byt_interval.right))
+                dp[id_byt_interval] = p_b
+            bin_likeli += p_b
+        
+        print('bin-base likelihood:', bin_likeli/len(given_data), bin_likeli)
+        self.likelihood = bin_likeli/len(given_data)
 
     def generate_one(self, dep_info=None):
         gen_date_obj, gen_te, gen_sip, gen_dip, gen_te_delta = self.generate_sup_info()

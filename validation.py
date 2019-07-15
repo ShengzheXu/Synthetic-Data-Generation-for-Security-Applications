@@ -96,19 +96,136 @@ def draw_3_distribution(name, rawdata, gen1data, gen2data, bins):
     plt.savefig('figures/611/post/%s.png' % name)
     plt.close()
 
-
-def real_vali_JS(rawdata, gendata, bins):
-    values1 = list(np.log(rawdata.byt))
-    values2 = list(np.log(gendata.byt))
-
+def gd(pd_data):
+    values1 = list(np.log(pd_data.byt))
     cats1 = pd.cut(values1, bins)
     pr1 = list(cats1.value_counts())
-    cats2 = pd.cut(values2, bins)
-    pr2 = list(cats2.value_counts())
-
     pk = get_distribution(pr1)
-    qk = get_distribution(pr2)
-    # print(len(pk), len(qk))
+    return pk
+
+def estimated_autocorrelation(x):
+    """
+    http://stackoverflow.com/q/14297012/190597
+    http://en.wikipedia.org/wiki/Autocorrelation#Estimation
+    """
+    x = x[:100000]
+    n = len(x)
+    variance = x.var()
+    x = x-x.mean()
+    r = np.correlate(x, x, mode = 'full')[-n:]
+    assert np.allclose(r, np.array([(x[:n-k]*x[-(n-k):]).sum() for k in range(n)]))
+    result = r/(variance*(np.arange(n, 0, -1)))
+    return result
+
+# def show_autocorrelation():
+#     source_folder = './data/raw_data/'
+#     summ = []
+#     for f in glob.glob(source_folder+'*.csv'):
+#         source_record = pd.read_csv(f)
+#         values1 = np.log(source_record.byt).to_numpy()
+#         e_a = estimated_autocorrelation(values1)
+#         print(f, "estimated_autocorrelation", e_a, len(e_a))
+#         summ.append(e_a[1])
+#     print(sum(e_a)/len(e_a))
+
+def show_autocorrelation():
+    from statsmodels.tsa import stattools
+    from statsmodels.graphics.tsaplots import plot_acf, plot_pacf
+    import matplotlib.pyplot as plt
+
+    source_folder = './data/raw_data/'
+    for f in glob.glob(source_folder+'*.csv'):
+        user_name = f.split('_')[-1][:-4]
+        print("dealing with", user_name)
+
+        source_record = pd.read_csv(f)
+        byt_log_value = np.log(source_record.byt).to_numpy()
+        np.log(source_record.byt).plot()
+        plt.title("raw byt sequence of %s" % user_name)
+        # plt.show()
+        plt.savefig("auto-corr/%s_raw.png" % user_name)
+        plt.close()
+        acf = stattools.acf(byt_log_value)
+        plot_acf(byt_log_value,use_vlines=True,lags=60,title="Autocorrelation for %s" % user_name)
+        # plt.show()
+        plt.savefig("auto-corr/%s_acf.png" % user_name)
+        plt.close()
+        pacf=stattools.pacf(byt_log_value)
+        plot_pacf(byt_log_value,use_vlines=True,lags=60,title="Partial Autocorrelation for %s" % user_name)
+        # plt.show()
+        plt.savefig("auto-corr/%s_pacf.png" % user_name)
+        plt.close()
+
+def count_tcp_udp():
+    source_folder = './data/raw_data/'
+    tcp_alluser = 0
+    udp_alluser = 0
+    all_alluser = 0
+    all_keys = {}
+    for f in glob.glob(source_folder+'*.csv'):
+        user_name = f.split('_')[-1][:-4]
+        print("dealing with", user_name)
+
+        source_record = pd.read_csv(f)
+        all_traffic = len(source_record.index)
+        tcp_traffic = len(source_record[source_record['pr'] == 'TCP'].index)
+        udp_traffic = len(source_record[source_record['pr'] == 'UDP'].index)
+        print("all%d, tcp%f, udp%f" % (all_traffic, tcp_traffic/all_traffic, udp_traffic/all_traffic))
+        all_protocol = source_record['pr'].unique()
+        for i in all_protocol:
+            all_keys[i] = 1
+
+        tcp_alluser += tcp_traffic
+        udp_alluser += udp_traffic
+        all_alluser += all_traffic
+    print("=============all in all============")
+    print("all%d, tcp%f, udp%f" % (all_alluser, tcp_alluser/all_alluser, udp_alluser/all_alluser))
+    print(all_keys.keys())
+
+        
+
+def process_distribution(bins):
+    source_folder = './data/raw_data/'
+    target1_folder = './data/gen_data/5times_baseline1/5times%d_baseline1_1days_folder/'
+    target2_folder = './data/gen_data/5times_baseline3/5times%d_baseline3_1days_folder/'
+    
+    source_record = pd.concat([pd.read_csv(f) for f in glob.glob(source_folder+'*.csv')], ignore_index = True)
+    pk = gd(source_record)
+    with open("./data/distribution/real_dist.txt", "a") as myfile:
+        myfile.write(','.join(map(str, pk))+'\n')
+    for t_hour in range(24):   
+        str_hour = str(t_hour) if t_hour > 9 else '0'+ str(t_hour)
+        source_chunk = source_record[source_record['te'].str.contains(' '+str_hour+':')]
+        pk = gd(source_chunk)
+        with open("./data/distribution/real_dist_h%d.txt"%t_hour, "a") as myfile:
+            myfile.write(','.join(map(str, pk))+'\n')
+
+        
+    for i in range(1, 6):
+        target1_record = pd.concat([pd.read_csv(f) for f in glob.glob(target1_folder%i+'*.csv')], ignore_index = True)
+        pk = gd(target1_record)
+        with open("./data/distribution/baseline1_dist.txt", "a") as myfile:
+            myfile.write(','.join(map(str, pk))+'\n')
+        for t_hour in range(24):   
+            str_hour = str(t_hour) if t_hour > 9 else '0'+ str(t_hour)
+            target1_chunk = target1_record[target1_record['te'].str.contains(' '+str_hour+':')]
+            pk = gd(target1_chunk)
+            with open("./data/distribution/baseline1_dist_h%d.txt"%t_hour, "a") as myfile:
+                myfile.write(','.join(map(str, pk))+'\n')
+        
+    for i in range(1, 6):
+        target2_record = pd.concat([pd.read_csv(f) for f in glob.glob(target2_folder%i+'*.csv')], ignore_index = True)
+        pk = gd(target2_record)
+        with open("./data/distribution/baseline3_dist.txt", "a") as myfile:
+            myfile.write(','.join(map(str, pk))+'\n')
+        for t_hour in range(24):   
+            str_hour = str(t_hour) if t_hour > 9 else '0'+ str(t_hour)
+            target2_chunk = target2_record[target2_record['te'].str.contains(' '+str_hour+':')]
+            pk = gd(target2_chunk)
+            with open("./data/distribution/baseline3_dist_h%d.txt"%t_hour, "a") as myfile:
+                myfile.write(','.join(map(str, pk))+'\n')
+
+def real_vali_JS(pk, qk, bins):
     avgk = [(x+y)/2 for x,y in zip(pk, qk)]
 
     JS = (scipy.stats.entropy(pk, avgk) + scipy.stats.entropy(qk, avgk)) / 2
@@ -174,44 +291,56 @@ def vali_hourly(raw_ip_str, gen_ip_str, bins):
 
     return rtn
 
+def avg_distribution(f_name):
+    ll = []
+    with open('./data/distribution/%s.txt' % f_name) as fin:
+        for line in fin:
+            li = line.split(',')
+            li = [float(i) for i in li]
+            ll.append(li)
+    # from __future__ import division
+    
+    print('avging:', f_name, len(ll), len(ll[0]))
+    avg_dist = [sum(e)/len(e) for e in zip(*ll)]
+    return avg_dist
+
 def vali_as_a_whole(bins):
-    source_folder = './data/raw_data/'
-    target1_folder = './data/gen_data/baseline1_1days_folder/'
-    target2_folder = './data/gen_data/baseline2_1days_folder/'
+    avg_real_dist = avg_distribution('real_dist')
+    avg_bsl1_dist = avg_distribution('baseline1_dist')
+    avg_bsl2_dist = avg_distribution('baseline3_dist')
 
-    source_record = pd.concat([pd.read_csv(f) for f in glob.glob(source_folder+'*.csv')], ignore_index = True)
-    target1_record = pd.concat([pd.read_csv(f) for f in glob.glob(target1_folder+'*.csv')], ignore_index = True)
-    target2_record = pd.concat([pd.read_csv(f) for f in glob.glob(target2_folder+'*.csv')], ignore_index = True)
-
-    print("real vs baseline1:", real_vali_JS(source_record, target1_record, bins))
-    print("real vs baseline2:", real_vali_JS(source_record, target2_record, bins))
+    print("real vs baseline1:", real_vali_JS(avg_real_dist, avg_bsl1_dist, bins))
+    print("real vs baseline3:", real_vali_JS(avg_real_dist, avg_bsl2_dist, bins))
     # draw_3_distribution('whole', source_record, target1_record, target2_record, bins)
 
-    x_data = ['JS(raw|baseline1)', 'JS(raw|baseline2)'] #, 'JS(baselin1|baseline2)']
+    x_data = ['JS(raw|baseline1)', 'JS(raw|baseline3)'] #, 'JS(baselin1|baseline2)']
     y_data = [[], []] #, []]
 
     for t_hour in range(24):   
         str_hour = str(t_hour) if t_hour > 9 else '0'+ str(t_hour)
-        source_chunk = source_record[source_record['te'].str.contains(' '+str_hour+':')]
-        target1_chunk = target1_record[target1_record['te'].str.contains(' '+str_hour+':')]
-        target2_chunk = target2_record[target2_record['te'].str.contains(' '+str_hour+':')]
-        draw_3_distribution(str(t_hour), source_chunk, target1_chunk, target2_chunk, bins)
+        # source_chunk = source_record[source_record['te'].str.contains(' '+str_hour+':')]
+        # target1_chunk = target1_record[target1_record['te'].str.contains(' '+str_hour+':')]
+        # target2_chunk = target2_record[target2_record['te'].str.contains(' '+str_hour+':')]
+        # draw_3_distribution(str(t_hour), source_chunk, target1_chunk, target2_chunk, bins)
+        avg_real_dist = avg_distribution('real_dist_h%d'%t_hour)
+        avg_bsl1_dist = avg_distribution('baseline1_dist_h%d'%t_hour)
+        avg_bsl2_dist = avg_distribution('baseline3_dist_h%d'%t_hour)
 
-        y_data[0].append(real_vali_JS(source_chunk, target1_chunk, bins))
-        y_data[1].append(real_vali_JS(source_chunk, target2_chunk, bins))
+        y_data[0].append(real_vali_JS(avg_real_dist, avg_bsl1_dist, bins))
+        y_data[1].append(real_vali_JS(avg_real_dist, avg_bsl2_dist, bins))
         #y_data[2].append(real_vali_JS(target1_chunk, target2_chunk, bins))
     
     average1 = sum(y_data[0])/len(y_data[0])
     average2 = sum(y_data[1])/len(y_data[1])
     
-    my_formatted_list = [ '%.3f' % elem for elem in y_data[0] ]
-    print("baseline1", my_formatted_list)
+    # my_formatted_list = [ '%.3f' % elem for elem in y_data[0] ]
+    # print("baseline1", my_formatted_list)
     
-    my_formatted_list = [ '%.3f' % elem for elem in y_data[1] ]
-    print("baseline2", my_formatted_list)
+    # my_formatted_list = [ '%.3f' % elem for elem in y_data[1] ]
+    # print("baseline2", my_formatted_list)
     
-    print("average hour-conditioned JS:\nJS(real||baseline1):%f\nJS(real||baseline2):%f\n" % (average1, average2))
-    temporal_lineplot(x_data, y_data, x_label='hour', y_label='JS divergency', title='3 pairs JS divergency compare')
+    print("average hour-conditioned JS:\nJS(real||baseline1):%f\nJS(real||baseline3):%f\n" % (average1, average2))
+    # temporal_lineplot(x_data, y_data, x_label='hour', y_label='JS divergency', title='3 pairs JS divergency compare')
 
 
 if __name__ == "__main__":
@@ -265,5 +394,9 @@ if __name__ == "__main__":
     if config['VALIDATE']['conditioned_whole'] == 'True':
         show_conditioned_distribution(bins)
 
+    # show_autocorrelation()
+    count_tcp_udp()
+
     if config['VALIDATE']['hour_whole'] == 'True':
+        # process_distribution(bins)
         vali_as_a_whole(bins)

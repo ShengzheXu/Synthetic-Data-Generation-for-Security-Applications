@@ -1,3 +1,68 @@
+# July 10
+
+1. [Done] check how many tcp/udp we have
+
+2. [Done] do lag by 1~50 auto-correlation. This show how many dependency. Jusify why we need to model the temporal.
+    if auto-correlation -> 0, then it means no temporal dependency.
+
+    so plot the lag a-c, decide how many to back. go up&down, go back 1 day
+
+3. [Done] write to the network GAN author for the code.
+
+4. how to use embedding. IP address. If we do the embedding, how to evaluate it?
+
+5. have ML tasks to do. Use the embbedding -> model enhance accuracy
+
+6. using task to figure a. predict protocol b. feature value forcast future values.
+
+    compare embedding. t-sne plot -> low-dimension. is to visualize the data. usually have clusters.
+
+7. IP addr -> do some embedding.
+    exp. integer, 4 bytes long
+
+8. temporal: how far we go back. outstanding - fix the number.
+    go back 3 hours, assume 10 datapoints/min.
+    
+    more - subsample
+    less - padding, sample with replacement.
+
+9. model the time_delta,
+
+10. new problem, not past 3 hours.
+    NLP 3 hours.
+    Sequence-to-sequence RNN
+    to generate the embedding
+    auto-encoder
+
+# June 28 progress
+
+1. do auto-correlation for each user seperately. and we focus k=1 situation. in this case we expect: using b-1 value is helpful
+
+2. we can use a sliding window: 1 hour/ 2 hour/ 3 hour
+    
+    from application view, we want to go back x hours.
+    however, #datapoint/hour is not a fix number.
+
+   Our solution: aggregate every 5 mins, so that the total number for 3 hours is fixed.
+
+3. our input for NN: T, other attributes + past 3 hour aggregation
+
+4. model the time_delta to gen the timestamp
+
+5. consider output not using bins.
+
+    for exp. try to model pdf or model GMM parameters.
+
+# June 15-17 plan
+
+1. run 5 times experiments baseline2. Got mean distribution for baseline1&2, then compare the JS divergence.
+
+2. re-implement the baseline1 likelihood
+
+3. re-write down the factorization like a paper. start with joint distribution, then factorize them differently.
+
+4. read paper A Convolutional Attention Network for Extreme Summarization of Source Code
+
 # June 14 plan & discussion
 
 1. run baseline1 5 repeat experiments
